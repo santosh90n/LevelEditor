@@ -6,8 +6,8 @@
 package xyz.alexac.leveleditor.model;
 
 /**
-
- @author alex-ac
+ *
+ * @author alex-ac
  */
 public class Voxel {
   public int x = 0;
@@ -19,11 +19,14 @@ public class Voxel {
     this.y = y;
     this.z = z;
   }
-  
+
+  Voxel() {
+  }
+
   @Override
   public boolean equals(Object o) {
     if (o instanceof Voxel) {
-      Voxel v = (Voxel)o;
+      Voxel v = (Voxel) o;
       return v.x == x && v.y == y && v.z == z;
     }
     return false;
@@ -37,9 +40,10 @@ public class Voxel {
     hash = 97 * hash + this.z;
     return hash;
   }
-  
+
   @Override
   public String toString() {
-    return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z + "]";
+    return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z +
+           "]";
   }
 }
