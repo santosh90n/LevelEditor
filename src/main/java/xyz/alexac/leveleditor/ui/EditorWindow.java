@@ -15,6 +15,7 @@ import xyz.alexac.leveleditor.model.ProjectSettings;
 public class EditorWindow
         extends javax.swing.JFrame {
   private final EditorWindowDelegate delegate_;
+  private final LayerListModel layerListModel_;
   private final ProjectSettings settings_;
   private LevelElement element_;
 
@@ -26,6 +27,7 @@ public class EditorWindow
   public EditorWindow(EditorWindowDelegate delegate, ProjectSettings settings) {
     delegate_ = delegate;
     settings_ = settings;
+    layerListModel_ = new LayerListModel(settings_);
     initComponents();
   }
 
@@ -40,15 +42,12 @@ public class EditorWindow
     java.awt.GridBagConstraints gridBagConstraints;
 
     buttonGroup1 = new javax.swing.ButtonGroup();
-    jLabel1 = new javax.swing.JLabel();
-    jLabel2 = new javax.swing.JLabel();
-    jSpinner1 = new javax.swing.JSpinner();
-    jLabel3 = new javax.swing.JLabel();
-    jSpinner2 = new javax.swing.JSpinner();
-    jLabel4 = new javax.swing.JLabel();
+    jSplitPane1 = new javax.swing.JSplitPane();
+    jPanel1 = new javax.swing.JPanel();
+    projectSettingsView2 = new ProjectSettingsView(settings_);
+    jPanel2 = new javax.swing.JPanel();
     jRadioButton1 = new javax.swing.JRadioButton();
     jRadioButton2 = new javax.swing.JRadioButton();
-    filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
     objectView1 = new xyz.alexac.leveleditor.ui.ObjectView();
     objectView1.setSettings(settings_);
     jMenuBar1 = new javax.swing.JMenuBar();
@@ -58,68 +57,17 @@ public class EditorWindow
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     setMinimumSize(new java.awt.Dimension(800, 600));
-    getContentPane().setLayout(new java.awt.GridBagLayout());
+    getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
 
-    jLabel1.setText("Grid Size");
+    jPanel1.setLayout(new java.awt.GridBagLayout());
     gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.ipady = 15;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-    getContentPane().add(jLabel1, gridBagConstraints);
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 0.1;
+    gridBagConstraints.weighty = 0.1;
+    jPanel1.add(projectSettingsView2, gridBagConstraints);
 
-    jLabel2.setText("Width:");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.ipadx = 50;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-    getContentPane().add(jLabel2, gridBagConstraints);
-
-    jSpinner1.setModel(new javax.swing.SpinnerNumberModel(256, 1, null, 1));
-    jSpinner1.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        gridWidthChanged(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.ipadx = 50;
-    getContentPane().add(jSpinner1, gridBagConstraints);
-
-    jLabel3.setText("Height:");
-    jLabel3.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.ipadx = 50;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 20, 20, 0);
-    getContentPane().add(jLabel3, gridBagConstraints);
-
-    jSpinner2.setModel(new javax.swing.SpinnerNumberModel(128, 1, null, 1));
-    jSpinner2.addChangeListener(new javax.swing.event.ChangeListener() {
-      public void stateChanged(javax.swing.event.ChangeEvent evt) {
-        gridHeightChanged(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.ipadx = 50;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 20, 0);
-    getContentPane().add(jSpinner2, gridBagConstraints);
-
-    jLabel4.setText("Level Element");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 3;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
-    getContentPane().add(jLabel4, gridBagConstraints);
+    jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Object View"));
+    jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
 
     buttonGroup1.add(jRadioButton1);
     jRadioButton1.setSelected(true);
@@ -129,12 +77,7 @@ public class EditorWindow
         viewModeChanged(evt);
       }
     });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 3;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
-    gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-    getContentPane().add(jRadioButton1, gridBagConstraints);
+    jPanel2.add(jRadioButton1);
 
     buttonGroup1.add(jRadioButton2);
     jRadioButton2.setText("Occupied Voxels selection");
@@ -143,25 +86,22 @@ public class EditorWindow
         viewModeChanged(evt);
       }
     });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 3;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
-    gridBagConstraints.insets = new java.awt.Insets(0, 10, 20, 0);
-    getContentPane().add(jRadioButton2, gridBagConstraints);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.gridheight = 3;
-    getContentPane().add(filler1, gridBagConstraints);
+    jPanel2.add(jRadioButton2);
+
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.gridwidth = 5;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.weighty = 1.0;
-    getContentPane().add(objectView1, gridBagConstraints);
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    gridBagConstraints.weighty = 0.1;
+    jPanel1.add(jPanel2, gridBagConstraints);
+
+    jSplitPane1.setLeftComponent(jPanel1);
+
+    objectView1.setMinimumSize(new java.awt.Dimension(500, 0));
+    jSplitPane1.setRightComponent(objectView1);
+
+    getContentPane().add(jSplitPane1);
 
     jMenu1.setText("File");
 
@@ -187,14 +127,6 @@ public class EditorWindow
     delegate_.openObject();
   }//GEN-LAST:event_onOpenObject
 
-  private void gridHeightChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_gridHeightChanged
-    settings_.setTileHeight(((Integer) (jSpinner2.getModel().getValue())));
-  }//GEN-LAST:event_gridHeightChanged
-
-  private void gridWidthChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_gridWidthChanged
-    settings_.setTileWidth(((Integer) (jSpinner1.getModel().getValue())));
-  }//GEN-LAST:event_gridWidthChanged
-
   private void viewModeChanged(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewModeChanged
     objectView1.setMode(
             jRadioButton1.isSelected()
@@ -209,19 +141,16 @@ public class EditorWindow
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.ButtonGroup buttonGroup1;
-  private javax.swing.Box.Filler filler1;
-  private javax.swing.JLabel jLabel1;
-  private javax.swing.JLabel jLabel2;
-  private javax.swing.JLabel jLabel3;
-  private javax.swing.JLabel jLabel4;
   private javax.swing.JMenu jMenu1;
   private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
   private javax.swing.JMenuItem jMenuItem1;
+  private javax.swing.JPanel jPanel1;
+  private javax.swing.JPanel jPanel2;
   private javax.swing.JRadioButton jRadioButton1;
   private javax.swing.JRadioButton jRadioButton2;
-  private javax.swing.JSpinner jSpinner1;
-  private javax.swing.JSpinner jSpinner2;
+  private javax.swing.JSplitPane jSplitPane1;
   private xyz.alexac.leveleditor.ui.ObjectView objectView1;
+  private xyz.alexac.leveleditor.ui.ProjectSettingsView projectSettingsView2;
   // End of variables declaration//GEN-END:variables
 }
