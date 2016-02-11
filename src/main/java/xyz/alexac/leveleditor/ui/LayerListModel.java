@@ -21,11 +21,13 @@ import xyz.alexac.leveleditor.model.ProjectSettings;
  * @author alex-ac
  */
 public class LayerListModel implements Observer, ListModel<DrawingLayer> {
-  private final Set<ListDataListener> listeners_;
-  private final ProjectSettings settings_;
+  private final Set<ListDataListener> listeners_ = new HashSet<>();
+  private ProjectSettings settings_ = null;
 
-  LayerListModel(ProjectSettings settings) {
-    listeners_ = new HashSet<>();
+  LayerListModel() {
+  }
+
+  public void setSettings(ProjectSettings settings) {
     settings_ = settings;
     settings_.addObserver(this);
   }

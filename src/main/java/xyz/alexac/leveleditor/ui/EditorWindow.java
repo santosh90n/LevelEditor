@@ -5,30 +5,21 @@
  */
 package xyz.alexac.leveleditor.ui;
 
-import xyz.alexac.leveleditor.model.LevelElement;
-import xyz.alexac.leveleditor.model.ProjectSettings;
+import xyz.alexac.leveleditor.model.Project;
 
 /**
  *
  * @author alex-ac
  */
-public class EditorWindow
-        extends javax.swing.JFrame {
-  private final EditorWindowDelegate delegate_;
-  private final LayerListModel layerListModel_;
-  private final ProjectSettings settings_;
-  private LevelElement element_;
+public class EditorWindow extends javax.swing.JFrame {
+  private Project project = new Project();
 
   /**
    * Creates new form EditorWindow
-   *
-   * @param delegate
    */
-  public EditorWindow(EditorWindowDelegate delegate, ProjectSettings settings) {
-    delegate_ = delegate;
-    settings_ = settings;
-    layerListModel_ = new LayerListModel(settings_);
+  public EditorWindow() {
     initComponents();
+    projectView.setProject(project);
   }
 
   /**
@@ -41,116 +32,105 @@ public class EditorWindow
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    buttonGroup1 = new javax.swing.ButtonGroup();
     jSplitPane1 = new javax.swing.JSplitPane();
+    jScrollPane1 = new javax.swing.JScrollPane();
     jPanel1 = new javax.swing.JPanel();
-    projectSettingsView2 = new ProjectSettingsView(settings_);
-    jPanel2 = new javax.swing.JPanel();
-    jRadioButton1 = new javax.swing.JRadioButton();
-    jRadioButton2 = new javax.swing.JRadioButton();
-    objectView1 = new xyz.alexac.leveleditor.ui.ObjectView();
-    objectView1.setSettings(settings_);
+    projectView = new xyz.alexac.leveleditor.ui.ProjectView();
+    viewport1 = new xyz.alexac.leveleditor.ui.Viewport();
     jMenuBar1 = new javax.swing.JMenuBar();
     jMenu1 = new javax.swing.JMenu();
     jMenuItem1 = new javax.swing.JMenuItem();
-    jMenu2 = new javax.swing.JMenu();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-    setMinimumSize(new java.awt.Dimension(800, 600));
-    getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
+    setMinimumSize(new java.awt.Dimension(900, 600));
+    getContentPane().setLayout(new java.awt.GridBagLayout());
 
+    jScrollPane1.setBorder(null);
+    jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    jScrollPane1.setMinimumSize(null);
+
+    jPanel1.setMinimumSize(new java.awt.Dimension(250, 80));
     jPanel1.setLayout(new java.awt.GridBagLayout());
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
+    gridBagConstraints.weightx = 0.1;
+    jPanel1.add(projectView, gridBagConstraints);
+
+    jScrollPane1.setViewportView(jPanel1);
+
+    jSplitPane1.setLeftComponent(jScrollPane1);
+
+    viewport1.setMinimumSize(new java.awt.Dimension(600, 600));
+    jSplitPane1.setRightComponent(viewport1);
+
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.weightx = 0.1;
     gridBagConstraints.weighty = 0.1;
-    jPanel1.add(projectSettingsView2, gridBagConstraints);
-
-    jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Object View"));
-    jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
-
-    buttonGroup1.add(jRadioButton1);
-    jRadioButton1.setSelected(true);
-    jRadioButton1.setText("2D tiles selection");
-    jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        viewModeChanged(evt);
-      }
-    });
-    jPanel2.add(jRadioButton1);
-
-    buttonGroup1.add(jRadioButton2);
-    jRadioButton2.setText("Occupied Voxels selection");
-    jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        viewModeChanged(evt);
-      }
-    });
-    jPanel2.add(jRadioButton2);
-
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.weightx = 0.1;
-    gridBagConstraints.weighty = 0.1;
-    jPanel1.add(jPanel2, gridBagConstraints);
-
-    jSplitPane1.setLeftComponent(jPanel1);
-
-    objectView1.setMinimumSize(new java.awt.Dimension(500, 0));
-    jSplitPane1.setRightComponent(objectView1);
-
-    getContentPane().add(jSplitPane1);
+    getContentPane().add(jSplitPane1, gridBagConstraints);
 
     jMenu1.setText("File");
 
-    jMenuItem1.setText("Open Object");
-    jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        onOpenObject(evt);
-      }
-    });
+    jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
+    jMenuItem1.setText("Save Project");
     jMenu1.add(jMenuItem1);
 
     jMenuBar1.add(jMenu1);
-
-    jMenu2.setText("Edit");
-    jMenuBar1.add(jMenu2);
 
     setJMenuBar(jMenuBar1);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-  private void onOpenObject(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onOpenObject
-    delegate_.openObject();
-  }//GEN-LAST:event_onOpenObject
+  /**
+   * @param args the command line arguments
+   */
+  public static void main(String args[]) {
+    /* Set the Nimbus look and feel */
+    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
+     */
+    try {
+      for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.
+              getInstalledLookAndFeels()) {
+        if ("Nimbus".equals(info.getName())) {
+          javax.swing.UIManager.setLookAndFeel(info.getClassName());
+          break;
+        }
+      }
+    } catch (ClassNotFoundException ex) {
+      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
+              java.util.logging.Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
+              java.util.logging.Level.SEVERE, null, ex);
+    } catch (IllegalAccessException ex) {
+      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
+              java.util.logging.Level.SEVERE, null, ex);
+    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
+              java.util.logging.Level.SEVERE, null, ex);
+    }
+    //</editor-fold>
 
-  private void viewModeChanged(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewModeChanged
-    objectView1.setMode(
-            jRadioButton1.isSelected()
-                    ? ObjectView.MODE_GRID
-                    : ObjectView.MODE_VOXEL);
-  }//GEN-LAST:event_viewModeChanged
-
-  public void setElement(LevelElement element) {
-    element_ = element;
-    objectView1.setElement(element);
+    /* Create and display the form */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        new EditorWindow().setVisible(true);
+      }
+    });
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.ButtonGroup buttonGroup1;
   private javax.swing.JMenu jMenu1;
-  private javax.swing.JMenu jMenu2;
   private javax.swing.JMenuBar jMenuBar1;
   private javax.swing.JMenuItem jMenuItem1;
   private javax.swing.JPanel jPanel1;
-  private javax.swing.JPanel jPanel2;
-  private javax.swing.JRadioButton jRadioButton1;
-  private javax.swing.JRadioButton jRadioButton2;
+  private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JSplitPane jSplitPane1;
-  private xyz.alexac.leveleditor.ui.ObjectView objectView1;
-  private xyz.alexac.leveleditor.ui.ProjectSettingsView projectSettingsView2;
+  private xyz.alexac.leveleditor.ui.ProjectView projectView;
+  private xyz.alexac.leveleditor.ui.Viewport viewport1;
   // End of variables declaration//GEN-END:variables
 }

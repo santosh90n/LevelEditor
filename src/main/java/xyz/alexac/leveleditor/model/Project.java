@@ -21,7 +21,8 @@ public class Project extends Observable implements JsonSerializable {
 
   private int gridWidth = 256;
   private int gridHeight = 128;
-  private List<Layer> layers = new ArrayList<>();
+  private final List<Layer> layers = new ArrayList<>();
+  private final List<Block> blocks = new ArrayList<>();
 
   public int getGridWidth() {
     return gridWidth;
@@ -36,7 +37,7 @@ public class Project extends Observable implements JsonSerializable {
       return;
     }
     gridWidth = width;
-    hasChanged();
+    setChanged();
     notifyObservers("gridWidth");
   }
 
@@ -45,7 +46,7 @@ public class Project extends Observable implements JsonSerializable {
       return;
     }
     gridHeight = height;
-    hasChanged();
+    setChanged();
     notifyObservers("gridHeight");
   }
 
@@ -64,7 +65,7 @@ public class Project extends Observable implements JsonSerializable {
     layers.add(layer);
     Collections.sort(layers, (Layer a, Layer b) -> a.getZ() < b.getZ() ? -1
                                                              : 1);
-    hasChanged();
+    setChanged();
     notifyObservers("layers");
   }
 
@@ -73,8 +74,34 @@ public class Project extends Observable implements JsonSerializable {
       return;
     }
     layers.remove(layer);
-    hasChanged();
+    setChanged();
     notifyObservers("layers");
+  }
+
+  public Block[] getBlocks() {
+    return (Block[]) blocks.toArray();
+  }
+
+  public Block getBlock(int i) {
+    return blocks.get(i);
+  }
+
+  public void addBlock(Block block) {
+    if (blocks.contains(block)) {
+      return;
+    }
+    blocks.add(block);
+    setChanged();
+    notifyObservers("blocks");
+  }
+
+  public void removeBlock(Block block) {
+    if (!blocks.contains(block)) {
+      return;
+    }
+    blocks.remove(block);
+    setChanged();
+    notifyObservers("blocks");
   }
 
   @Override
@@ -83,9 +110,14 @@ public class Project extends Observable implements JsonSerializable {
     for (Layer layer : this.layers) {
       layers.add(layer.toJSON());
     }
+    JsonArrayBuilder blocks = Json.createArrayBuilder();
+    for (Block block : this.blocks) {
+      blocks.add(block.toJSON());
+    }
     return Json.createObjectBuilder()
             .add("gridWidth", gridWidth)
             .add("gridHeight", gridHeight)
-            .add("layers", layers);
+            .add("layers", layers)
+            .add("blocks", blocks);
   }
 }

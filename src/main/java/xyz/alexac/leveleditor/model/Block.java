@@ -6,11 +6,21 @@
 package xyz.alexac.leveleditor.model;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
+import javax.imageio.ImageIO;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 
 /**
@@ -135,7 +145,28 @@ public class Block extends Observable implements JsonSerializable {
 
   @Override
   public JsonObjectBuilder toJSON() {
-    // JsonArrayBuilder tiles = Json.createArrayBuilder();
-    return null;
+    JsonArrayBuilder tiles = Json.createArrayBuilder();
+    for (Tile tile : this.tiles) {
+      tiles.add(tile.toJSON());
+    }
+    JsonObjectBuilder themedImages = Json.createObjectBuilder();
+    for (Map.Entry<String, BufferedImage> entry : this.themedImages.entrySet()) {
+      try {
+        ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
+        OutputStream base64Stream = Base64.getEncoder().wrap(byteArrayStream);
+        OutputStream gzipStream = new GZIPOutputStream(base64Stream);
+        ImageIO.write(entry.getValue(), "image/png", gzipStream);
+        gzipStream.close();
+        themedImages.add(entry.getKey(), byteArrayStream.toString());
+      } catch (IOException ex) {
+        Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+    return Json.createObjectBuilder()
+            .add("name", name)
+            .add("offset", offset.toJSON())
+            .add("defaultTheme", defaultTheme)
+            .add("themedImages", themedImages)
+            .add("tiles", tiles);
   }
 }
