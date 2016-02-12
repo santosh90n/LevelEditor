@@ -47,9 +47,9 @@ public class EditorWindow extends javax.swing.JFrame {
 
     jScrollPane1.setBorder(null);
     jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    jScrollPane1.setMinimumSize(null);
+    jScrollPane1.setMinimumSize(new java.awt.Dimension(350, 0));
 
-    jPanel1.setMinimumSize(new java.awt.Dimension(250, 80));
+    jPanel1.setMinimumSize(new java.awt.Dimension(350, 80));
     jPanel1.setLayout(new java.awt.GridBagLayout());
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;

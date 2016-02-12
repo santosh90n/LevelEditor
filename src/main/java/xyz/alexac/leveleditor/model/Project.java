@@ -23,6 +23,7 @@ public class Project extends Observable implements JsonSerializable {
   private int gridWidth = 256;
   private int gridHeight = 128;
   private final List<Layer> layers = new ArrayList<>();
+  private final List<String> themes = new ArrayList<>();
   private final List<Block> blocks = new ArrayList<>();
 
   public int getGridWidth() {
@@ -79,6 +80,13 @@ public class Project extends Observable implements JsonSerializable {
     return layers.size();
   }
 
+  public String getTheme(int index) {
+    if (index < themes.size()) {
+      return themes.get(index);
+    }
+    return null;
+  }
+
   public void removeLayer(Layer layer) {
     if (!layers.contains(layer)) {
       return;
@@ -86,6 +94,37 @@ public class Project extends Observable implements JsonSerializable {
     layers.remove(layer);
     setChanged();
     notifyObservers("layers");
+  }
+
+  public String[] getThemes() {
+    String[] themes = new String[this.themes.size()];
+    Iterator<String> it = this.themes.iterator();
+    for (int i = 0; i < themes.length && it.hasNext(); i++) {
+      themes[i] = it.next();
+    }
+    return themes;
+  }
+
+  public int getThemesCount() {
+    return themes.size();
+  }
+
+  public void addTheme(String theme) {
+    if (themes.contains(theme)) {
+      return;
+    }
+    themes.add(theme);
+    setChanged();
+    notifyObservers("themes");
+  }
+
+  public void removeTheme(String theme) {
+    if (!themes.contains(theme)) {
+      return;
+    }
+    themes.remove(theme);
+    setChanged();
+    notifyObservers("themes");
   }
 
   public Block[] getBlocks() {
@@ -124,10 +163,15 @@ public class Project extends Observable implements JsonSerializable {
     for (Block block : this.blocks) {
       blocks.add(block.toJSON());
     }
+    JsonArrayBuilder themes = Json.createArrayBuilder();
+    for (String theme : this.themes) {
+      themes.add(theme);
+    }
     return Json.createObjectBuilder()
             .add("gridWidth", gridWidth)
             .add("gridHeight", gridHeight)
             .add("layers", layers)
+            .add("themes", themes)
             .add("blocks", blocks);
   }
 }

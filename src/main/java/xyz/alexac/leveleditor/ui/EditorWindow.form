@@ -64,7 +64,7 @@
             </Property>
             <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-              <Dimension value="null"/>
+              <Dimension value="[350, 0]"/>
             </Property>
           </Properties>
           <Constraints>
@@ -78,7 +78,7 @@
             <Container class="javax.swing.JPanel" name="jPanel1">
               <Properties>
                 <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                  <Dimension value="[250, 80]"/>
+                  <Dimension value="[350, 80]"/>
                 </Property>
               </Properties>
 
