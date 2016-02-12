@@ -9,22 +9,21 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
-import xyz.alexac.leveleditor.model.DrawingLayer;
+import xyz.alexac.leveleditor.model.Layer;
 
 /**
  *
  * @author alex-ac
  */
 public class LayerListCellRenderer extends JLabel implements
-        ListCellRenderer<DrawingLayer> {
+        ListCellRenderer<Layer> {
   @Override
   public Component getListCellRendererComponent(
-          JList<? extends DrawingLayer> list,
-          DrawingLayer value, int index,
+          JList<? extends Layer> list,
+          Layer value, int index,
           boolean isSelected,
           boolean cellHasFocus) {
-    setText(value.getName() + "(visible: " + value.isVisible() +
-            ", collisions: " + value.isCollisions() + ")");
+    setText(value.getName());
     if (isSelected) {
       setBackground(list.getSelectionBackground());
       setForeground(list.getSelectionForeground());

@@ -33,6 +33,8 @@ public class Viewport extends JComponent implements Observer, MouseListener,
   private int gridHeight = 128;
   private Vector2D lastPoint = null;
   private float scale = 1.0f;
+  private int zPlane = 0;
+  private boolean zPlaneEnabled = false;
 
   public Viewport() {
     this.addMouseListener(this);
@@ -77,7 +79,10 @@ public class Viewport extends JComponent implements Observer, MouseListener,
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
     if (e.isShiftDown()) {
-
+      if (zPlaneEnabled) {
+        zPlane += e.getWheelRotation();
+        repaint();
+      }
     } else {
       float scale = this.scale + e.getWheelRotation() * 0.01f;
       if (scale < 0.1f) {
@@ -117,6 +122,14 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     }
   }
 
+  public void setZPlaneEnabled(boolean enabled) {
+    if (zPlaneEnabled == enabled) {
+      return;
+    }
+    zPlaneEnabled = enabled;
+    repaint();
+  }
+
   @Override
   public void paint(Graphics g) {
     int gridWidth = (int) (this.gridWidth * scale);
@@ -140,6 +153,22 @@ public class Viewport extends JComponent implements Observer, MouseListener,
                    x + gridWidth / 2, y + gridHeight / 2);
         g.drawLine(x - gridWidth / 2, y + gridHeight / 2,
                    x + gridWidth / 2, y - gridHeight / 2);
+      }
+    }
+
+    if (zPlaneEnabled) {
+      Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
+      startX = zPlaneOrigin.getX();
+      startY = zPlaneOrigin.getY();
+      while (startX > 0) {
+        startX -= gridWidth;
+      }
+      g.setColor(Color.CYAN);
+      for (int x = startX; x < getWidth(); x += gridWidth) {
+        for (int y = startY; y > 0; y -= gridHeight) {
+          g.drawLine(x, y, x, y - gridHeight);
+          g.drawLine(x, y, x + gridWidth, y);
+        }
       }
     }
 
@@ -167,5 +196,10 @@ public class Viewport extends JComponent implements Observer, MouseListener,
           break;
       }
     }
+  }
+
+  private Vector2D findOrigin(int x, int y) {
+    return origin.plus((int) ((x - y) * gridWidth / 2 * scale),
+                       (int) (-(x + y) * gridHeight / 2 * scale));
   }
 }

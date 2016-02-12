@@ -7,6 +7,7 @@ package xyz.alexac.leveleditor.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import javax.json.Json;
@@ -51,7 +52,12 @@ public class Project extends Observable implements JsonSerializable {
   }
 
   public Layer[] getLayers() {
-    return (Layer[]) layers.toArray();
+    Layer[] layers = new Layer[this.layers.size()];
+    Iterator<Layer> it = this.layers.iterator();
+    for (int i = 0; i < this.layers.size() && it.hasNext(); i++) {
+      layers[i] = it.next();
+    }
+    return layers;
   }
 
   public Layer getLayer(int i) {
@@ -67,6 +73,10 @@ public class Project extends Observable implements JsonSerializable {
                                                              : 1);
     setChanged();
     notifyObservers("layers");
+  }
+
+  public int getLayersCount() {
+    return layers.size();
   }
 
   public void removeLayer(Layer layer) {

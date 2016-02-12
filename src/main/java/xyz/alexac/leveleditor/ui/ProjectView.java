@@ -7,6 +7,7 @@ package xyz.alexac.leveleditor.ui;
 
 import java.util.Observable;
 import java.util.Observer;
+import xyz.alexac.leveleditor.model.Layer;
 import xyz.alexac.leveleditor.model.Project;
 
 /**
@@ -15,6 +16,8 @@ import xyz.alexac.leveleditor.model.Project;
  */
 public class ProjectView extends javax.swing.JPanel implements Observer {
   private Project project = null;
+  private LayerListModel layerListModel = new LayerListModel();
+  private int layerNumber = 0;
 
   /**
    * Creates new form ProjectView
@@ -53,18 +56,22 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    jLabel1 = new javax.swing.JLabel();
+    gridWidthLabel = new javax.swing.JLabel();
     gridWidthSpinner = new javax.swing.JSpinner();
-    jLabel2 = new javax.swing.JLabel();
+    gridHeightLabel = new javax.swing.JLabel();
     gridHeightSpinner = new javax.swing.JSpinner();
+    layersListScroll = new javax.swing.JScrollPane();
+    layersList = new javax.swing.JList<>();
+    addLayerButton = new javax.swing.JButton();
+    deleteLayerButton = new javax.swing.JButton();
 
     setBorder(javax.swing.BorderFactory.createTitledBorder("Project"));
     setLayout(new java.awt.GridBagLayout());
 
-    jLabel1.setText("Grid Width:");
+    gridWidthLabel.setText("Grid Width:");
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
-    add(jLabel1, gridBagConstraints);
+    add(gridWidthLabel, gridBagConstraints);
 
     gridWidthSpinner.setModel(new javax.swing.SpinnerNumberModel(256, 1, null, 1));
     gridWidthSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -73,17 +80,20 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       }
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 1;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
     gridBagConstraints.weightx = 0.1;
     add(gridWidthSpinner, gridBagConstraints);
 
-    jLabel2.setText("Grid Height:");
+    gridHeightLabel.setText("Grid Height:");
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
-    add(jLabel2, gridBagConstraints);
+    add(gridHeightLabel, gridBagConstraints);
 
     gridHeightSpinner.setModel(new javax.swing.SpinnerNumberModel(128, 1, null, 1));
     gridHeightSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -94,10 +104,53 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 1;
     gridBagConstraints.gridy = 1;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
     gridBagConstraints.weightx = 0.1;
     add(gridHeightSpinner, gridBagConstraints);
+
+    layersList.setBorder(javax.swing.BorderFactory.createTitledBorder("Layers"));
+    layersList.setModel(layerListModel);
+    layersList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+    layersList.setCellRenderer(new LayerListCellRenderer());
+    layersListScroll.setViewportView(layersList);
+
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 2;
+    gridBagConstraints.gridwidth = 2;
+    gridBagConstraints.gridheight = 3;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 0.1;
+    gridBagConstraints.weighty = 0.1;
+    add(layersListScroll, gridBagConstraints);
+
+    addLayerButton.setText("Add");
+    addLayerButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        addLayer(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 2;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(addLayerButton, gridBagConstraints);
+
+    deleteLayerButton.setText("Delete");
+    deleteLayerButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        deleteLayer(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 3;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(deleteLayerButton, gridBagConstraints);
   }// </editor-fold>//GEN-END:initComponents
 
   private void updateWidth(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateWidth
@@ -112,11 +165,32 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     }
   }//GEN-LAST:event_updateHeight
 
+  private void addLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addLayer
+    if (project == null) {
+      return;
+    }
+    Layer layer = new Layer();
+    layer.setName("layer #" + Integer.toString(++layerNumber));
+    project.addLayer(layer);
+  }//GEN-LAST:event_addLayer
+
+  private void deleteLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteLayer
+    if (project == null || layersList.isSelectionEmpty()) {
+      return;
+    }
+    Layer layer = layersList.getSelectedValue();
+    project.removeLayer(layer);
+  }//GEN-LAST:event_deleteLayer
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton addLayerButton;
+  private javax.swing.JButton deleteLayerButton;
+  private javax.swing.JLabel gridHeightLabel;
   private javax.swing.JSpinner gridHeightSpinner;
+  private javax.swing.JLabel gridWidthLabel;
   private javax.swing.JSpinner gridWidthSpinner;
-  private javax.swing.JLabel jLabel1;
-  private javax.swing.JLabel jLabel2;
+  private javax.swing.JList<Layer> layersList;
+  private javax.swing.JScrollPane layersListScroll;
   // End of variables declaration//GEN-END:variables
 
   void setProject(Project project) {
@@ -131,6 +205,8 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       this.project.addObserver(this);
       this.gridWidthSpinner.getModel().setValue(this.project.getGridWidth());
       this.gridHeightSpinner.getModel().setValue(this.project.getGridHeight());
+      this.layerNumber = this.project.getLayersCount();
     }
+    this.layerListModel.setProject(project);
   }
 }
