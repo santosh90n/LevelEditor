@@ -153,6 +153,17 @@ public class Project extends Observable implements JsonSerializable {
     notifyObservers("blocks");
   }
 
+  public void renameTheme(String theme, String name) {
+    if (!themes.contains(theme) || themes.contains(name)) {
+      return;
+    }
+
+    themes.remove(theme);
+    themes.add(name);
+    setChanged();
+    notifyObservers("themes");
+  }
+
   @Override
   public JsonObjectBuilder toJSON() {
     JsonArrayBuilder layers = Json.createArrayBuilder();

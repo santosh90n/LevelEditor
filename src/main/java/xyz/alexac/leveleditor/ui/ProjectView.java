@@ -5,8 +5,11 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.awt.Component;
 import java.util.Observable;
 import java.util.Observer;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import xyz.alexac.leveleditor.model.Layer;
 import xyz.alexac.leveleditor.model.Project;
 
@@ -72,6 +75,8 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     deleteThemeButton = new javax.swing.JButton();
     filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
     filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+    renameLayerButton = new javax.swing.JButton();
+    renameThemeButton = new javax.swing.JButton();
 
     setBorder(javax.swing.BorderFactory.createTitledBorder("Project"));
     setLayout(new java.awt.GridBagLayout());
@@ -128,7 +133,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 3;
     gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.gridheight = 3;
+    gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.weightx = 0.1;
     gridBagConstraints.weighty = 0.1;
@@ -167,7 +172,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 7;
+    gridBagConstraints.gridy = 8;
     gridBagConstraints.gridwidth = 2;
     gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -183,7 +188,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 7;
+    gridBagConstraints.gridy = 8;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(addThemeButton, gridBagConstraints);
@@ -196,7 +201,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 8;
+    gridBagConstraints.gridy = 9;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(deleteThemeButton, gridBagConstraints);
@@ -207,9 +212,35 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(filler1, gridBagConstraints);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 6;
+    gridBagConstraints.gridy = 7;
     gridBagConstraints.gridwidth = 3;
     add(filler2, gridBagConstraints);
+
+    renameLayerButton.setText("Rename");
+    renameLayerButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        renameLayer(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 5;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(renameLayerButton, gridBagConstraints);
+
+    renameThemeButton.setText("Rename");
+    renameThemeButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        renameTheme(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 10;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(renameThemeButton, gridBagConstraints);
   }// </editor-fold>//GEN-END:initComponents
 
   private void updateWidth(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateWidth
@@ -256,6 +287,43 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     project.removeTheme(themesList.getSelectedValue());
   }//GEN-LAST:event_deleteTheme
 
+  private void renameTheme(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameTheme
+    if (project == null || themesList.isSelectionEmpty()) {
+      return;
+    }
+    JFrame frame = null;
+    for (Component component = this; component != null; component = component.
+                                                        getParent()) {
+      if (component instanceof JFrame) {
+        frame = (JFrame) component;
+        break;
+      }
+    };
+    String theme = themesList.getSelectedValue();
+    JDialog dialog = new RenameDialog(frame, true, theme,
+                                      (String name) -> project.renameTheme(
+                                              theme, name));
+    dialog.setVisible(true);
+  }//GEN-LAST:event_renameTheme
+
+  private void renameLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameLayer
+    if (project == null || layersList.isSelectionEmpty()) {
+      return;
+    }
+    Layer layer = layersList.getSelectedValue();
+    JFrame frame = null;
+    for (Component component = this; component != null; component = component.
+                                                        getParent()) {
+      if (component instanceof JFrame) {
+        frame = (JFrame) component;
+        break;
+      }
+    };
+    JDialog dialog = new RenameDialog(frame, true, layer.getName(),
+                                      (String name) -> layer.setName(name));
+    dialog.setVisible(true);
+  }//GEN-LAST:event_renameLayer
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton addLayerButton;
   private javax.swing.JButton addThemeButton;
@@ -269,6 +337,8 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
   private javax.swing.JSpinner gridWidthSpinner;
   private javax.swing.JList<Layer> layersList;
   private javax.swing.JScrollPane layersListScroll;
+  private javax.swing.JButton renameLayerButton;
+  private javax.swing.JButton renameThemeButton;
   private javax.swing.JList<String> themesList;
   private javax.swing.JScrollPane themesScrollPane;
   // End of variables declaration//GEN-END:variables
