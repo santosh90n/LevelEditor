@@ -19,8 +19,8 @@ import xyz.alexac.leveleditor.model.Project;
  */
 public class ProjectView extends javax.swing.JPanel implements Observer {
   private Project project = null;
-  private LayerListModel layerListModel = new LayerListModel();
-  private ThemesListModel themesListModel = new ThemesListModel();
+  private final LayerListModel layerListModel = new LayerListModel();
+  private final ThemesListModel themesListModel = new ThemesListModel();
   private int layerNumber = 0;
   private int themeNumber = 0;
 
@@ -245,7 +245,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
   private void updateWidth(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateWidth
     if (project != null) {
-      project.setGridHeight((Integer) gridWidthSpinner.getModel().getValue());
+      project.setGridWidth((Integer) gridWidthSpinner.getModel().getValue());
     }
   }//GEN-LAST:event_updateWidth
 

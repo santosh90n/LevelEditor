@@ -5,6 +5,17 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.json.Json;
+import javax.json.JsonWriter;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import xyz.alexac.leveleditor.model.Project;
 
 /**
@@ -12,7 +23,9 @@ import xyz.alexac.leveleditor.model.Project;
  * @author alex-ac
  */
 public class EditorWindow extends javax.swing.JFrame {
-  private Project project = new Project();
+  private final Project project = new Project();
+  private final JFileChooser fileChooser = new JFileChooser();
+  private File projectFile = null;
 
   /**
    * Creates new form EditorWindow
@@ -20,6 +33,10 @@ public class EditorWindow extends javax.swing.JFrame {
   public EditorWindow() {
     initComponents();
     projectView.setProject(project);
+    viewport.setProject(project);
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        "*.json - Level Editor project file.", "json");
+    fileChooser.setFileFilter(filter);
   }
 
   /**
@@ -36,10 +53,11 @@ public class EditorWindow extends javax.swing.JFrame {
     jScrollPane1 = new javax.swing.JScrollPane();
     jPanel1 = new javax.swing.JPanel();
     projectView = new xyz.alexac.leveleditor.ui.ProjectView();
-    viewport1 = new xyz.alexac.leveleditor.ui.Viewport();
-    jMenuBar1 = new javax.swing.JMenuBar();
-    jMenu1 = new javax.swing.JMenu();
-    jMenuItem1 = new javax.swing.JMenuItem();
+    viewport = new xyz.alexac.leveleditor.ui.Viewport();
+    menuBar = new javax.swing.JMenuBar();
+    fileMenu = new javax.swing.JMenu();
+    saveProjectMenuItem = new javax.swing.JMenuItem();
+    saveProjectAsMenuItem = new javax.swing.JMenuItem();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     setMinimumSize(new java.awt.Dimension(900, 600));
@@ -61,8 +79,8 @@ public class EditorWindow extends javax.swing.JFrame {
 
     jSplitPane1.setLeftComponent(jScrollPane1);
 
-    viewport1.setMinimumSize(new java.awt.Dimension(600, 600));
-    jSplitPane1.setRightComponent(viewport1);
+    viewport.setMinimumSize(new java.awt.Dimension(600, 600));
+    jSplitPane1.setRightComponent(viewport);
 
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -70,67 +88,70 @@ public class EditorWindow extends javax.swing.JFrame {
     gridBagConstraints.weighty = 0.1;
     getContentPane().add(jSplitPane1, gridBagConstraints);
 
-    jMenu1.setText("File");
+    fileMenu.setText("File");
+    fileMenu.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveProjectAs(evt);
+      }
+    });
 
-    jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
-    jMenuItem1.setText("Save Project");
-    jMenu1.add(jMenuItem1);
+    saveProjectMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
+    saveProjectMenuItem.setText("Save Project");
+    saveProjectMenuItem.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveProject(evt);
+      }
+    });
+    fileMenu.add(saveProjectMenuItem);
 
-    jMenuBar1.add(jMenu1);
+    saveProjectAsMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.META_MASK));
+    saveProjectAsMenuItem.setText("Save Project As");
+    fileMenu.add(saveProjectAsMenuItem);
 
-    setJMenuBar(jMenuBar1);
+    menuBar.add(fileMenu);
+
+    setJMenuBar(menuBar);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-  /**
-   * @param args the command line arguments
-   */
-  public static void main(String args[]) {
-    /* Set the Nimbus look and feel */
-    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-     */
-    try {
-      for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.
-              getInstalledLookAndFeels()) {
-        if ("Nimbus".equals(info.getName())) {
-          javax.swing.UIManager.setLookAndFeel(info.getClassName());
-          break;
-        }
-      }
-    } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
-              java.util.logging.Level.SEVERE, null, ex);
-    } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
-              java.util.logging.Level.SEVERE, null, ex);
-    } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
-              java.util.logging.Level.SEVERE, null, ex);
-    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-      java.util.logging.Logger.getLogger(EditorWindow.class.getName()).log(
-              java.util.logging.Level.SEVERE, null, ex);
+  private void saveProject(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveProject
+    if (projectFile != null) {
+      doSaveProject();
+    } else {
+      saveProjectAs(evt);
     }
-    //</editor-fold>
+  }//GEN-LAST:event_saveProject
 
-    /* Create and display the form */
-    java.awt.EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        new EditorWindow().setVisible(true);
-      }
-    });
-  }
+  private void saveProjectAs(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveProjectAs
+    if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    projectFile = fileChooser.getSelectedFile();
+    doSaveProject();
+  }//GEN-LAST:event_saveProjectAs
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JMenu jMenu1;
-  private javax.swing.JMenuBar jMenuBar1;
-  private javax.swing.JMenuItem jMenuItem1;
+  private javax.swing.JMenu fileMenu;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JSplitPane jSplitPane1;
+  private javax.swing.JMenuBar menuBar;
   private xyz.alexac.leveleditor.ui.ProjectView projectView;
-  private xyz.alexac.leveleditor.ui.Viewport viewport1;
+  private javax.swing.JMenuItem saveProjectAsMenuItem;
+  private javax.swing.JMenuItem saveProjectMenuItem;
+  private xyz.alexac.leveleditor.ui.Viewport viewport;
   // End of variables declaration//GEN-END:variables
+
+  private void doSaveProject() {
+    try {
+      OutputStream fileStream = new FileOutputStream(projectFile);
+      OutputStream bufferedStream = new BufferedOutputStream(fileStream);
+      JsonWriter writer = Json.createWriter(bufferedStream);
+      writer.writeObject(project.toJSON().build());
+      writer.close();
+    } catch (FileNotFoundException ex) {
+      Logger.getLogger(EditorWindow.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }
 }
