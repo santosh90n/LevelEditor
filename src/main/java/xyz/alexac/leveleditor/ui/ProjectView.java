@@ -13,7 +13,6 @@ import javax.swing.JFrame;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import xyz.alexac.leveleditor.model.Block;
-import xyz.alexac.leveleditor.model.Layer;
 import xyz.alexac.leveleditor.model.Project;
 
 /**
@@ -22,10 +21,8 @@ import xyz.alexac.leveleditor.model.Project;
  */
 public class ProjectView extends javax.swing.JPanel implements Observer {
   private Project project = null;
-  private final LayerListModel layerListModel = new LayerListModel();
   private final ThemesListModel themesListModel = new ThemesListModel();
   private final BlockListModel blocksListModel = new BlockListModel();
-  private int layerNumber = 0;
   private int themeNumber = 0;
   private int blockNumber = 0;
   private final StateController stateController = new StateController(this);
@@ -36,14 +33,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
     public StateController(ProjectView view) {
       this.view = view;
-    }
-
-    public Layer getCurrentLayer() {
-      if (this.view.project == null ||
-          this.view.layersList.isSelectionEmpty()) {
-        return null;
-      }
-      return this.view.layersList.getSelectedValue();
     }
 
     public String getCurrentTheme() {
@@ -64,10 +53,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      if (e.getSource() == this.view.layersList) {
-        setChanged();
-        notifyObservers("currentLayer");
-      } else if (e.getSource() == this.view.themesList) {
+      if (e.getSource() == this.view.themesList) {
         setChanged();
         notifyObservers("currentTheme");
       } else if (e.getSource() == this.view.blocksList) {
@@ -86,7 +72,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
    */
   public ProjectView() {
     initComponents();
-    layersList.addListSelectionListener(stateController);
     themesList.addListSelectionListener(stateController);
     blocksList.addListSelectionListener(stateController);
     stateController.addObserver(this);
@@ -111,12 +96,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       }
     } else if (o == stateController) {
       switch ((String) arg) {
-        case "currentLayer": {
-          boolean selected = !layersList.isSelectionEmpty();
-          deleteLayerButton.setEnabled(selected);
-          renameLayerButton.setEnabled(selected);
-          break;
-        }
         case "currentTheme": {
           boolean selected = !themesList.isSelectionEmpty();
           deleteThemeButton.setEnabled(selected);
@@ -147,17 +126,11 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridWidthSpinner = new javax.swing.JSpinner();
     gridHeightLabel = new javax.swing.JLabel();
     gridHeightSpinner = new javax.swing.JSpinner();
-    layersListScroll = new javax.swing.JScrollPane();
-    layersList = new javax.swing.JList<>();
-    addLayerButton = new javax.swing.JButton();
-    deleteLayerButton = new javax.swing.JButton();
     themesScrollPane = new javax.swing.JScrollPane();
     themesList = new javax.swing.JList<>();
     addThemeButton = new javax.swing.JButton();
     deleteThemeButton = new javax.swing.JButton();
-    filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
     filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-    renameLayerButton = new javax.swing.JButton();
     renameThemeButton = new javax.swing.JButton();
     blocksListScroll = new javax.swing.JScrollPane();
     blocksList = new javax.swing.JList<>();
@@ -211,49 +184,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.weightx = 0.1;
     add(gridHeightSpinner, gridBagConstraints);
 
-    layersList.setBorder(javax.swing.BorderFactory.createTitledBorder("Layers"));
-    layersList.setModel(layerListModel);
-    layersList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-    layersList.setCellRenderer(new LayerListCellRenderer());
-    layersListScroll.setViewportView(layersList);
-
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.gridheight = 4;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 0.2;
-    gridBagConstraints.weighty = 0.1;
-    add(layersListScroll, gridBagConstraints);
-
-    addLayerButton.setText("Add");
-    addLayerButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        addLayer(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.weightx = 0.1;
-    add(addLayerButton, gridBagConstraints);
-
-    deleteLayerButton.setText("Delete");
-    deleteLayerButton.setEnabled(false);
-    deleteLayerButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        deleteLayer(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.weightx = 0.1;
-    add(deleteLayerButton, gridBagConstraints);
-
     themesList.setBorder(javax.swing.BorderFactory.createTitledBorder("Themes"));
     themesList.setModel(themesListModel);
     themesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -261,7 +191,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 8;
+    gridBagConstraints.gridy = 3;
     gridBagConstraints.gridwidth = 2;
     gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -277,7 +207,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 8;
+    gridBagConstraints.gridy = 3;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(addThemeButton, gridBagConstraints);
@@ -291,7 +221,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 9;
+    gridBagConstraints.gridy = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(deleteThemeButton, gridBagConstraints);
@@ -299,26 +229,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 2;
     gridBagConstraints.gridwidth = 3;
-    add(filler1, gridBagConstraints);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 7;
-    gridBagConstraints.gridwidth = 3;
     add(filler2, gridBagConstraints);
-
-    renameLayerButton.setText("Rename");
-    renameLayerButton.setEnabled(false);
-    renameLayerButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        renameLayer(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 5;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.weightx = 0.1;
-    add(renameLayerButton, gridBagConstraints);
 
     renameThemeButton.setText("Rename");
     renameThemeButton.setEnabled(false);
@@ -329,7 +240,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 10;
+    gridBagConstraints.gridy = 5;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(renameThemeButton, gridBagConstraints);
@@ -341,7 +252,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 13;
+    gridBagConstraints.gridy = 8;
     gridBagConstraints.gridwidth = 2;
     gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -350,7 +261,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(blocksListScroll, gridBagConstraints);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 12;
+    gridBagConstraints.gridy = 7;
     gridBagConstraints.gridwidth = 3;
     add(filler3, gridBagConstraints);
 
@@ -362,7 +273,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 13;
+    gridBagConstraints.gridy = 8;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(addBlockButton, gridBagConstraints);
@@ -376,7 +287,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 14;
+    gridBagConstraints.gridy = 9;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(deleteBlockButton, gridBagConstraints);
@@ -390,7 +301,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 15;
+    gridBagConstraints.gridy = 10;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(renameBlockButton, gridBagConstraints);
@@ -407,23 +318,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       project.setGridHeight((Integer) gridHeightSpinner.getModel().getValue());
     }
   }//GEN-LAST:event_updateHeight
-
-  private void addLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addLayer
-    if (project == null) {
-      return;
-    }
-    Layer layer = new Layer();
-    layer.setName("layer #" + Integer.toString(++layerNumber));
-    project.addLayer(layer);
-  }//GEN-LAST:event_addLayer
-
-  private void deleteLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteLayer
-    if (project == null || layersList.isSelectionEmpty()) {
-      return;
-    }
-    Layer layer = layersList.getSelectedValue();
-    project.removeLayer(layer);
-  }//GEN-LAST:event_deleteLayer
 
   private void addTheme(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addTheme
 
@@ -458,24 +352,6 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
                                               theme, name));
     dialog.setVisible(true);
   }//GEN-LAST:event_renameTheme
-
-  private void renameLayer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameLayer
-    if (project == null || layersList.isSelectionEmpty()) {
-      return;
-    }
-    Layer layer = layersList.getSelectedValue();
-    JFrame frame = null;
-    for (Component component = this; component != null; component = component.
-                                                        getParent()) {
-      if (component instanceof JFrame) {
-        frame = (JFrame) component;
-        break;
-      }
-    };
-    JDialog dialog = new RenameDialog(frame, true, layer.getName(),
-                                      (String name) -> layer.setName(name));
-    dialog.setVisible(true);
-  }//GEN-LAST:event_renameLayer
 
   private void addBlock(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBlock
     if (project == null) {
@@ -513,24 +389,18 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton addBlockButton;
-  private javax.swing.JButton addLayerButton;
   private javax.swing.JButton addThemeButton;
   private javax.swing.JList<Block> blocksList;
   private javax.swing.JScrollPane blocksListScroll;
   private javax.swing.JButton deleteBlockButton;
-  private javax.swing.JButton deleteLayerButton;
   private javax.swing.JButton deleteThemeButton;
-  private javax.swing.Box.Filler filler1;
   private javax.swing.Box.Filler filler2;
   private javax.swing.Box.Filler filler3;
   private javax.swing.JLabel gridHeightLabel;
   private javax.swing.JSpinner gridHeightSpinner;
   private javax.swing.JLabel gridWidthLabel;
   private javax.swing.JSpinner gridWidthSpinner;
-  private javax.swing.JList<Layer> layersList;
-  private javax.swing.JScrollPane layersListScroll;
   private javax.swing.JButton renameBlockButton;
-  private javax.swing.JButton renameLayerButton;
   private javax.swing.JButton renameThemeButton;
   private javax.swing.JList<String> themesList;
   private javax.swing.JScrollPane themesScrollPane;
@@ -548,11 +418,9 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       this.project.addObserver(this);
       this.gridWidthSpinner.getModel().setValue(this.project.getGridWidth());
       this.gridHeightSpinner.getModel().setValue(this.project.getGridHeight());
-      this.layerNumber = this.project.getLayersCount();
       this.themeNumber = this.project.getThemesCount();
       this.blockNumber = this.project.getBlocksCount();
     }
-    this.layerListModel.setProject(project);
     this.themesListModel.setProject(project);
     this.blocksListModel.setProject(project);
   }

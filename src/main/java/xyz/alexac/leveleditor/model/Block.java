@@ -9,9 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.TreeMap;
@@ -20,7 +18,6 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 
 /**
@@ -32,7 +29,6 @@ public class Block extends Observable implements JsonSerializable {
   private String defaultTheme = null;
   private Map<String, BufferedImage> themedImages = new TreeMap<>();
   private Vector2D offset = new Vector2D();
-  private List<Tile> tiles = new ArrayList<>();
 
   public String getName() {
     return name;
@@ -121,34 +117,8 @@ public class Block extends Observable implements JsonSerializable {
     notifyObservers("offset");
   }
 
-  public Tile[] getTiles() {
-    return (Tile[]) tiles.toArray();
-  }
-
-  public void addTile(Tile tile) {
-    if (tiles.contains(tile)) {
-      return;
-    }
-    tiles.add(tile);
-    setChanged();
-    notifyObservers("tiles");
-  }
-
-  public void removeTile(Tile tile) {
-    if (!tiles.contains(tile)) {
-      return;
-    }
-    tiles.remove(tile);
-    setChanged();
-    notifyObservers("tiles");
-  }
-
   @Override
   public JsonObjectBuilder toJSON() {
-    JsonArrayBuilder tiles = Json.createArrayBuilder();
-    for (Tile tile : this.tiles) {
-      tiles.add(tile.toJSON());
-    }
     JsonObjectBuilder themedImages = Json.createObjectBuilder();
     for (Map.Entry<String, BufferedImage> entry : this.themedImages.entrySet()) {
       try {
@@ -166,7 +136,6 @@ public class Block extends Observable implements JsonSerializable {
             .add("name", name)
             .add("offset", offset.toJSON())
             .add("defaultTheme", defaultTheme)
-            .add("themedImages", themedImages)
-            .add("tiles", tiles);
+            .add("themedImages", themedImages);
   }
 }
