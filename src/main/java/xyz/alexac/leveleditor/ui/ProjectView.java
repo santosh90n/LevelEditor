@@ -10,6 +10,9 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import xyz.alexac.leveleditor.model.Block;
 import xyz.alexac.leveleditor.model.Layer;
 import xyz.alexac.leveleditor.model.Project;
 
@@ -17,18 +20,24 @@ import xyz.alexac.leveleditor.model.Project;
  *
  * @author alex-ac
  */
-public class ProjectView extends javax.swing.JPanel implements Observer {
+public class ProjectView extends javax.swing.JPanel implements Observer,
+                                                               ListSelectionListener {
   private Project project = null;
   private final LayerListModel layerListModel = new LayerListModel();
   private final ThemesListModel themesListModel = new ThemesListModel();
+  private final BlockListModel blocksListModel = new BlockListModel();
   private int layerNumber = 0;
   private int themeNumber = 0;
+  private int blockNumber = 0;
 
   /**
    * Creates new form ProjectView
    */
   public ProjectView() {
     initComponents();
+    layersList.addListSelectionListener(this);
+    themesList.addListSelectionListener(this);
+    blocksList.addListSelectionListener(this);
   }
 
   @Override
@@ -48,6 +57,23 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
           }
           break;
       }
+    }
+  }
+
+  @Override
+  public void valueChanged(ListSelectionEvent e) {
+    if (e.getSource() == layersList) {
+      boolean selected = !layersList.isSelectionEmpty();
+      deleteLayerButton.setEnabled(selected);
+      renameLayerButton.setEnabled(selected);
+    } else if (e.getSource() == themesList) {
+      boolean selected = !themesList.isSelectionEmpty();
+      deleteThemeButton.setEnabled(selected);
+      renameThemeButton.setEnabled(selected);
+    } else if (e.getSource() == blocksList) {
+      boolean selected = !blocksList.isSelectionEmpty();
+      deleteBlockButton.setEnabled(selected);
+      renameBlockButton.setEnabled(selected);
     }
   }
 
@@ -77,6 +103,12 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
     renameLayerButton = new javax.swing.JButton();
     renameThemeButton = new javax.swing.JButton();
+    blocksListScroll = new javax.swing.JScrollPane();
+    blocksList = new javax.swing.JList<>();
+    filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+    addBlockButton = new javax.swing.JButton();
+    deleteBlockButton = new javax.swing.JButton();
+    renameBlockButton = new javax.swing.JButton();
 
     setBorder(javax.swing.BorderFactory.createTitledBorder("Project"));
     setLayout(new java.awt.GridBagLayout());
@@ -135,7 +167,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.gridwidth = 2;
     gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 0.1;
+    gridBagConstraints.weightx = 0.2;
     gridBagConstraints.weighty = 0.1;
     add(layersListScroll, gridBagConstraints);
 
@@ -153,6 +185,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(addLayerButton, gridBagConstraints);
 
     deleteLayerButton.setText("Delete");
+    deleteLayerButton.setEnabled(false);
     deleteLayerButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         deleteLayer(evt);
@@ -176,7 +209,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.gridwidth = 2;
     gridBagConstraints.gridheight = 4;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 0.1;
+    gridBagConstraints.weightx = 0.2;
     gridBagConstraints.weighty = 0.1;
     add(themesScrollPane, gridBagConstraints);
 
@@ -194,6 +227,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(addThemeButton, gridBagConstraints);
 
     deleteThemeButton.setText("Delete");
+    deleteThemeButton.setEnabled(false);
     deleteThemeButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         deleteTheme(evt);
@@ -217,6 +251,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(filler2, gridBagConstraints);
 
     renameLayerButton.setText("Rename");
+    renameLayerButton.setEnabled(false);
     renameLayerButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         renameLayer(evt);
@@ -230,6 +265,7 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     add(renameLayerButton, gridBagConstraints);
 
     renameThemeButton.setText("Rename");
+    renameThemeButton.setEnabled(false);
     renameThemeButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         renameTheme(evt);
@@ -241,6 +277,67 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.1;
     add(renameThemeButton, gridBagConstraints);
+
+    blocksList.setBorder(javax.swing.BorderFactory.createTitledBorder("Blocks"));
+    blocksList.setModel(blocksListModel);
+    blocksList.setCellRenderer(new BlockListCellRenderer());
+    blocksListScroll.setViewportView(blocksList);
+
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 13;
+    gridBagConstraints.gridwidth = 2;
+    gridBagConstraints.gridheight = 4;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 0.2;
+    gridBagConstraints.weighty = 0.1;
+    add(blocksListScroll, gridBagConstraints);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 12;
+    gridBagConstraints.gridwidth = 3;
+    add(filler3, gridBagConstraints);
+
+    addBlockButton.setText("Add");
+    addBlockButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        addBlock(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 13;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(addBlockButton, gridBagConstraints);
+
+    deleteBlockButton.setText("Delete");
+    deleteBlockButton.setEnabled(false);
+    deleteBlockButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        deleteBlock(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 14;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(deleteBlockButton, gridBagConstraints);
+
+    renameBlockButton.setText("Rename");
+    renameBlockButton.setEnabled(false);
+    renameBlockButton.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        renameBlock(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 15;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.weightx = 0.1;
+    add(renameBlockButton, gridBagConstraints);
   }// </editor-fold>//GEN-END:initComponents
 
   private void updateWidth(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateWidth
@@ -324,19 +421,59 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
     dialog.setVisible(true);
   }//GEN-LAST:event_renameLayer
 
+  private void addBlock(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBlock
+    if (project == null) {
+      return;
+    }
+    Block block = new Block();
+    block.setName("block #" + Integer.toString(++blockNumber));
+    project.addBlock(block);
+  }//GEN-LAST:event_addBlock
+
+  private void deleteBlock(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteBlock
+    if (project == null || blocksList.isSelectionEmpty()) {
+      return;
+    }
+    project.removeBlock(blocksList.getSelectedValue());
+  }//GEN-LAST:event_deleteBlock
+
+  private void renameBlock(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameBlock
+    if (project == null || blocksList.isSelectionEmpty()) {
+      return;
+    }
+    JFrame frame = null;
+    for (Component component = this; component != null; component = component.
+                                                        getParent()) {
+      if (component instanceof JFrame) {
+        frame = (JFrame) component;
+        break;
+      }
+    };
+    Block block = blocksList.getSelectedValue();
+    JDialog dialog = new RenameDialog(frame, true, block.getName(),
+                                      (String name) -> block.setName(name));
+    dialog.setVisible(true);
+  }//GEN-LAST:event_renameBlock
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton addBlockButton;
   private javax.swing.JButton addLayerButton;
   private javax.swing.JButton addThemeButton;
+  private javax.swing.JList<Block> blocksList;
+  private javax.swing.JScrollPane blocksListScroll;
+  private javax.swing.JButton deleteBlockButton;
   private javax.swing.JButton deleteLayerButton;
   private javax.swing.JButton deleteThemeButton;
   private javax.swing.Box.Filler filler1;
   private javax.swing.Box.Filler filler2;
+  private javax.swing.Box.Filler filler3;
   private javax.swing.JLabel gridHeightLabel;
   private javax.swing.JSpinner gridHeightSpinner;
   private javax.swing.JLabel gridWidthLabel;
   private javax.swing.JSpinner gridWidthSpinner;
   private javax.swing.JList<Layer> layersList;
   private javax.swing.JScrollPane layersListScroll;
+  private javax.swing.JButton renameBlockButton;
   private javax.swing.JButton renameLayerButton;
   private javax.swing.JButton renameThemeButton;
   private javax.swing.JList<String> themesList;
@@ -357,8 +494,10 @@ public class ProjectView extends javax.swing.JPanel implements Observer {
       this.gridHeightSpinner.getModel().setValue(this.project.getGridHeight());
       this.layerNumber = this.project.getLayersCount();
       this.themeNumber = this.project.getThemesCount();
+      this.blockNumber = this.project.getBlocksCount();
     }
     this.layerListModel.setProject(project);
     this.themesListModel.setProject(project);
+    this.blocksListModel.setProject(project);
   }
 }

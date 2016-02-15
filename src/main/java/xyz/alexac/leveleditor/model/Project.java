@@ -26,6 +26,10 @@ public class Project extends Observable implements JsonSerializable {
   private final List<String> themes = new ArrayList<>();
   private final List<Block> blocks = new ArrayList<>();
 
+  public int getBlocksCount() {
+    return blocks.size();
+  }
+
   public int getGridWidth() {
     return gridWidth;
   }
