@@ -10,22 +10,23 @@ package xyz.alexac.leveleditor.model;
  * @author alex-ac
  */
 public class Voxel {
-  public int x = 0;
-  public int y = 0;
-  public int z = 0;
+  public final float x;
+  public final float y;
+  public final float z;
 
-  public Voxel(int x, int y, int z) {
+  public Voxel(float x, float y, float z) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
 
   Voxel() {
+    x = y = z = 0.0f;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof Voxel) {
+    if (o != null && o instanceof Voxel) {
       Voxel v = (Voxel) o;
       return v.x == x && v.y == y && v.z == z;
     }
@@ -35,9 +36,9 @@ public class Voxel {
   @Override
   public int hashCode() {
     int hash = 7;
-    hash = 97 * hash + this.x;
-    hash = 97 * hash + this.y;
-    hash = 97 * hash + this.z;
+    hash = 53 * hash + Float.floatToIntBits(this.x);
+    hash = 53 * hash + Float.floatToIntBits(this.y);
+    hash = 53 * hash + Float.floatToIntBits(this.z);
     return hash;
   }
 

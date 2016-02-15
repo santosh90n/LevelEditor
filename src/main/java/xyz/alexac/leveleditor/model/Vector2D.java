@@ -13,8 +13,8 @@ import javax.json.JsonObjectBuilder;
  * @author alex-ac
  */
 public class Vector2D implements JsonSerializable {
-  private final int x;
-  private final int y;
+  public final int x;
+  public final int y;
 
   public Vector2D() {
     x = 0;
@@ -24,14 +24,6 @@ public class Vector2D implements JsonSerializable {
   public Vector2D(int x, int y) {
     this.x = x;
     this.y = y;
-  }
-
-  public int getX() {
-    return x;
-  }
-
-  public int getY() {
-    return y;
   }
 
   public Vector2D minus(Vector2D v) {

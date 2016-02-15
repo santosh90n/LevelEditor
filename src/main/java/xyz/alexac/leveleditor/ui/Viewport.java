@@ -137,11 +137,11 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     g.setColor(Color.DARK_GRAY);
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    int startX = origin.getX();
+    int startX = origin.x;
     while (startX > 0) {
       startX -= gridWidth;
     }
-    int startY = origin.getY();
+    int startY = origin.y;
     while (startY > 0) {
       startY -= gridHeight;
     }
@@ -158,8 +158,8 @@ public class Viewport extends JComponent implements Observer, MouseListener,
 
     if (zPlaneEnabled) {
       Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
-      startX = zPlaneOrigin.getX();
-      startY = zPlaneOrigin.getY();
+      startX = zPlaneOrigin.x;
+      startY = zPlaneOrigin.y;
       while (startX > 0) {
         startX -= gridWidth;
       }
@@ -173,7 +173,7 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     }
 
     g.setColor(Color.BLUE);
-    g.fillOval(origin.getX() - 4, origin.getY() - 4, 8, 8);
+    g.fillOval(origin.x - 4, origin.y - 4, 8, 8);
 
     String scaleStr = new DecimalFormat("#0.0#")
            .format(scale, new StringBuffer(), new FieldPosition(0))

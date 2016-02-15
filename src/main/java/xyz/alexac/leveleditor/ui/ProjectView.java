@@ -20,8 +20,7 @@ import xyz.alexac.leveleditor.model.Project;
  *
  * @author alex-ac
  */
-public class ProjectView extends javax.swing.JPanel implements Observer,
-                                                               ListSelectionListener {
+public class ProjectView extends javax.swing.JPanel implements Observer {
   private Project project = null;
   private final LayerListModel layerListModel = new LayerListModel();
   private final ThemesListModel themesListModel = new ThemesListModel();
@@ -29,15 +28,68 @@ public class ProjectView extends javax.swing.JPanel implements Observer,
   private int layerNumber = 0;
   private int themeNumber = 0;
   private int blockNumber = 0;
+  private final StateController stateController = new StateController(this);
+
+  public class StateController extends Observable implements
+          ListSelectionListener {
+    private final ProjectView view;
+
+    public StateController(ProjectView view) {
+      this.view = view;
+    }
+
+    public Layer getCurrentLayer() {
+      if (this.view.project == null ||
+          this.view.layersList.isSelectionEmpty()) {
+        return null;
+      }
+      return this.view.layersList.getSelectedValue();
+    }
+
+    public String getCurrentTheme() {
+      if (this.view.project == null ||
+          this.view.themesList.isSelectionEmpty()) {
+        return null;
+      }
+      return this.view.themesList.getSelectedValue();
+    }
+
+    public Block getCurrentBlock() {
+      if (this.view.project == null ||
+          this.view.blocksList.isSelectionEmpty()) {
+        return null;
+      }
+      return this.view.blocksList.getSelectedValue();
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+      if (e.getSource() == this.view.layersList) {
+        setChanged();
+        notifyObservers("currentLayer");
+      } else if (e.getSource() == this.view.themesList) {
+        setChanged();
+        notifyObservers("currentTheme");
+      } else if (e.getSource() == this.view.blocksList) {
+        setChanged();
+        notifyObservers("currentBlock");
+      }
+    }
+  }
+
+  public StateController getStateController() {
+    return stateController;
+  }
 
   /**
    * Creates new form ProjectView
    */
   public ProjectView() {
     initComponents();
-    layersList.addListSelectionListener(this);
-    themesList.addListSelectionListener(this);
-    blocksList.addListSelectionListener(this);
+    layersList.addListSelectionListener(stateController);
+    themesList.addListSelectionListener(stateController);
+    blocksList.addListSelectionListener(stateController);
+    stateController.addObserver(this);
   }
 
   @Override
@@ -57,23 +109,27 @@ public class ProjectView extends javax.swing.JPanel implements Observer,
           }
           break;
       }
-    }
-  }
-
-  @Override
-  public void valueChanged(ListSelectionEvent e) {
-    if (e.getSource() == layersList) {
-      boolean selected = !layersList.isSelectionEmpty();
-      deleteLayerButton.setEnabled(selected);
-      renameLayerButton.setEnabled(selected);
-    } else if (e.getSource() == themesList) {
-      boolean selected = !themesList.isSelectionEmpty();
-      deleteThemeButton.setEnabled(selected);
-      renameThemeButton.setEnabled(selected);
-    } else if (e.getSource() == blocksList) {
-      boolean selected = !blocksList.isSelectionEmpty();
-      deleteBlockButton.setEnabled(selected);
-      renameBlockButton.setEnabled(selected);
+    } else if (o == stateController) {
+      switch ((String) arg) {
+        case "currentLayer": {
+          boolean selected = !layersList.isSelectionEmpty();
+          deleteLayerButton.setEnabled(selected);
+          renameLayerButton.setEnabled(selected);
+          break;
+        }
+        case "currentTheme": {
+          boolean selected = !themesList.isSelectionEmpty();
+          deleteThemeButton.setEnabled(selected);
+          renameThemeButton.setEnabled(selected);
+          break;
+        }
+        case "currentBlock": {
+          boolean selected = !blocksList.isSelectionEmpty();
+          deleteBlockButton.setEnabled(selected);
+          renameBlockButton.setEnabled(selected);
+          break;
+        }
+      }
     }
   }
 
