@@ -6,9 +6,10 @@
 package xyz.alexac.leveleditor.model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
+import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
@@ -61,13 +62,8 @@ public class Project extends Observable implements JsonSerializable {
     return null;
   }
 
-  public String[] getThemes() {
-    String[] themes = new String[this.themes.size()];
-    Iterator<String> it = this.themes.iterator();
-    for (int i = 0; i < themes.length && it.hasNext(); i++) {
-      themes[i] = it.next();
-    }
-    return themes;
+  public Set<String> getThemes() {
+    return new HashSet<>(themes);
   }
 
   public int getThemesCount() {
@@ -92,8 +88,8 @@ public class Project extends Observable implements JsonSerializable {
     notifyObservers("themes");
   }
 
-  public Block[] getBlocks() {
-    return (Block[]) blocks.toArray();
+  public List<Block> getBlocks() {
+    return new ArrayList<>(blocks);
   }
 
   public Block getBlock(int i) {

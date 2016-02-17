@@ -10,19 +10,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonWriter;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import xyz.alexac.leveleditor.model.Block;
 import xyz.alexac.leveleditor.model.Project;
 
 /**
  *
  * @author alex-ac
  */
-public class EditorWindow extends javax.swing.JFrame {
+public class EditorWindow extends javax.swing.JFrame implements Observer {
   private final Project project = new Project();
   private final JFileChooser fileChooser = new JFileChooser();
   private File projectFile = null;
@@ -35,8 +38,32 @@ public class EditorWindow extends javax.swing.JFrame {
     projectView.setProject(project);
     viewport.setProject(project);
     FileNameExtensionFilter filter = new FileNameExtensionFilter(
-        "*.json - Level Editor project file.", "json");
+                            "*.json - Level Editor project file.", "json");
     fileChooser.setFileFilter(filter);
+    projectView.getStateController().addObserver(this);
+    blockView.setVisible(false);
+    blockView.setProject(project);
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
+    ProjectView.StateController stateController =
+                                projectView.getStateController();
+    if (o == projectView.getStateController()) {
+      switch ((String) arg) {
+        case "currentBlock":
+          Block b = stateController.getCurrentBlock();
+          blockView.setBlock(b);
+          if (b != null) {
+            this.viewport.setController(new BlockViewportController(b));
+            blockView.setVisible(true);
+          } else {
+            this.viewport.setController(null);
+            blockView.setVisible(false);
+          }
+          break;
+      }
+    }
   }
 
   /**
@@ -53,6 +80,7 @@ public class EditorWindow extends javax.swing.JFrame {
     jScrollPane1 = new javax.swing.JScrollPane();
     jPanel1 = new javax.swing.JPanel();
     projectView = new xyz.alexac.leveleditor.ui.ProjectView();
+    blockView = new xyz.alexac.leveleditor.ui.BlockView();
     viewport = new xyz.alexac.leveleditor.ui.Viewport();
     menuBar = new javax.swing.JMenuBar();
     fileMenu = new javax.swing.JMenu();
@@ -74,6 +102,12 @@ public class EditorWindow extends javax.swing.JFrame {
     gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
     gridBagConstraints.weightx = 0.1;
     jPanel1.add(projectView, gridBagConstraints);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 0.1;
+    jPanel1.add(blockView, gridBagConstraints);
 
     jScrollPane1.setViewportView(jPanel1);
 
@@ -132,6 +166,7 @@ public class EditorWindow extends javax.swing.JFrame {
   }//GEN-LAST:event_saveProjectAs
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private xyz.alexac.leveleditor.ui.BlockView blockView;
   private javax.swing.JMenu fileMenu;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JScrollPane jScrollPane1;

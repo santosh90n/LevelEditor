@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +27,7 @@ import javax.json.JsonObjectBuilder;
  */
 public class Block extends Observable implements JsonSerializable {
   private String name = "block";
-  private String defaultTheme = null;
+  private BufferedImage defaultImage = null;
   private Map<String, BufferedImage> themedImages = new TreeMap<>();
   private Vector2D offset = new Vector2D();
 
@@ -43,31 +44,28 @@ public class Block extends Observable implements JsonSerializable {
     notifyObservers("name");
   }
 
-  public String getDefaultTheme() {
-    return defaultTheme;
+  public BufferedImage getDefaultImage() {
+    return defaultImage;
   }
 
-  public void setDefaultTheme(String theme) {
-    if (theme == null ||
-        theme.isEmpty() ||
-        theme.equals(defaultTheme) ||
-        !themedImages.containsKey(theme)) {
+  public void setDefaultImage(BufferedImage image) {
+    if (image.equals(defaultImage)) {
       return;
     }
-    defaultTheme = theme;
+    defaultImage = image;
     setChanged();
-    notifyObservers("defaultTheme");
+    notifyObservers("defaultImage");
   }
 
-  public String[] getThemes() {
-    return (String[]) themedImages.keySet().toArray();
+  public Set<String> getThemes() {
+    return themedImages.keySet();
   }
 
   public BufferedImage getImage(String theme) {
     if (themedImages.containsKey(theme)) {
       return themedImages.get(theme);
     }
-    return null;
+    return getDefaultImage();
   }
 
   public void removeTheme(String theme) {
@@ -75,15 +73,6 @@ public class Block extends Observable implements JsonSerializable {
       return;
     }
     themedImages.remove(theme);
-    if (theme.equals(defaultTheme)) {
-      if (themedImages.isEmpty()) {
-        defaultTheme = null;
-      } else {
-        defaultTheme = themedImages.keySet().iterator().next();
-      }
-      setChanged();
-      notifyObservers("defaultTheme");
-    }
     setChanged();
     notifyObservers("themedImages");
   }
@@ -97,10 +86,8 @@ public class Block extends Observable implements JsonSerializable {
     themedImages.put(theme, image);
     setChanged();
     notifyObservers("themedImages");
-    if (defaultTheme == null) {
-      defaultTheme = theme;
-      setChanged();
-      notifyObservers("defaultTheme");
+    if (defaultImage == null) {
+      setDefaultImage(image);
     }
   }
 
@@ -117,25 +104,35 @@ public class Block extends Observable implements JsonSerializable {
     notifyObservers("offset");
   }
 
+  private String encodeImage(BufferedImage image) throws IOException {
+    ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
+    OutputStream base64Stream = Base64.getEncoder().wrap(byteArrayStream);
+    OutputStream gzipStream = new GZIPOutputStream(base64Stream);
+    ImageIO.write(image, "image/png", gzipStream);
+    gzipStream.close();
+    return byteArrayStream.toString();
+  }
+
   @Override
   public JsonObjectBuilder toJSON() {
     JsonObjectBuilder themedImages = Json.createObjectBuilder();
     for (Map.Entry<String, BufferedImage> entry : this.themedImages.entrySet()) {
       try {
-        ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
-        OutputStream base64Stream = Base64.getEncoder().wrap(byteArrayStream);
-        OutputStream gzipStream = new GZIPOutputStream(base64Stream);
-        ImageIO.write(entry.getValue(), "image/png", gzipStream);
-        gzipStream.close();
-        themedImages.add(entry.getKey(), byteArrayStream.toString());
+        themedImages.add(entry.getKey(), encodeImage(entry.getValue()));
       } catch (IOException ex) {
         Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
       }
     }
-    return Json.createObjectBuilder()
-            .add("name", name)
-            .add("offset", offset.toJSON())
-            .add("defaultTheme", defaultTheme)
-            .add("themedImages", themedImages);
+
+    JsonObjectBuilder builder = Json.createObjectBuilder()
+                      .add("name", name)
+                      .add("offset", offset.toJSON())
+                      .add("themedImages", themedImages);
+    try {
+      builder.add("defaultImage", encodeImage(defaultImage));
+    } catch (IOException ex) {
+      Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    return builder;
   }
 }

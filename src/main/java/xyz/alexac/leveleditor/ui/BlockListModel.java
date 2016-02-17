@@ -20,16 +20,25 @@ import xyz.alexac.leveleditor.model.Project;
  * @author alex-ac
  */
 public class BlockListModel implements ListModel<Block>, Observer {
-  private Set<ListDataListener> listeners = new HashSet<>();
+  private final Set<ListDataListener> listeners = new HashSet<>();
   private Project project = null;
+  private final Set<Block> blocks = new HashSet<>();
 
   public void setProject(Project project) {
     if (this.project != null) {
       this.project.deleteObserver(this);
+      for (Block b : blocks) {
+        b.deleteObserver(this);
+      }
     }
     this.project = project;
+    blocks.clear();
     if (this.project != null) {
       this.project.addObserver(this);
+      for (Block b : this.project.getBlocks()) {
+        blocks.add(b);
+        b.addObserver(this);
+      }
     }
     notifyListeners();
   }
@@ -64,8 +73,18 @@ public class BlockListModel implements ListModel<Block>, Observer {
   public void update(Observable o, Object arg) {
     if (o == project) {
       if ((String) arg == "blocks") {
+        for (Block b : blocks) {
+          b.deleteObserver(this);
+        }
+        blocks.clear();
+        for (Block b : project.getBlocks()) {
+          blocks.add(b);
+          b.addObserver(this);
+        }
         notifyListeners();
       }
+    } else if ((String) arg == "name") {
+      notifyListeners();
     }
   }
 

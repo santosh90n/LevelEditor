@@ -27,6 +27,10 @@ import xyz.alexac.leveleditor.model.Vector2D;
 public class Viewport extends JComponent implements Observer, MouseListener,
                                                     MouseMotionListener,
                                                     MouseWheelListener {
+  public final static int MODE_DEFAULT = 0;
+  public final static int MODE_VOXEL = 1;
+  public final static int MODE_TILES = 2;
+
   private Vector2D origin = null;
   private Project project = null;
   private int gridWidth = 256;
@@ -34,11 +38,21 @@ public class Viewport extends JComponent implements Observer, MouseListener,
   private Vector2D lastPoint = null;
   private float scale = 1.0f;
   private int zPlane = 0;
-  private boolean zPlaneEnabled = false;
+  private int unit = 0;
+
+  private ViewportController controller = null;
 
   public Viewport() {
     this.addMouseListener(this);
     this.addMouseWheelListener(this);
+  }
+
+  public void setController(ViewportController controller) {
+    if (this.controller == controller) {
+      return;
+    }
+    this.controller = controller;
+    repaint();
   }
 
   @Override
@@ -79,8 +93,19 @@ public class Viewport extends JComponent implements Observer, MouseListener,
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
     if (e.isShiftDown()) {
-      if (zPlaneEnabled) {
+      if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
         zPlane += e.getWheelRotation();
+        if (zPlane < -0.5) {
+          zPlane = -1;
+        }
+        repaint();
+      }
+    } else if (e.isAltDown()) {
+      if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
+        unit += e.getWheelRotation();
+        if (unit < 0) {
+          unit = 0;
+        }
         repaint();
       }
     } else {
@@ -122,14 +147,6 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     }
   }
 
-  public void setZPlaneEnabled(boolean enabled) {
-    if (zPlaneEnabled == enabled) {
-      return;
-    }
-    zPlaneEnabled = enabled;
-    repaint();
-  }
-
   @Override
   public void paint(Graphics g) {
     int gridWidth = (int) (this.gridWidth * scale);
@@ -148,7 +165,8 @@ public class Viewport extends JComponent implements Observer, MouseListener,
 
     g.setColor(Color.WHITE);
     for (int x = startX; x < getWidth() + gridWidth / 2; x += gridWidth) {
-      for (int y = startY; y < getHeight() + gridHeight / 2; y += gridHeight) {
+      for (int y = startY; y < getHeight() + gridHeight / 2 && y <= origin.y;
+           y += gridHeight) {
         g.drawLine(x - gridWidth / 2, y - gridHeight / 2,
                    x + gridWidth / 2, y + gridHeight / 2);
         g.drawLine(x - gridWidth / 2, y + gridHeight / 2,
@@ -156,18 +174,20 @@ public class Viewport extends JComponent implements Observer, MouseListener,
       }
     }
 
-    if (zPlaneEnabled) {
+    if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
+      final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
+      final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
       Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
       startX = zPlaneOrigin.x;
       startY = zPlaneOrigin.y;
       while (startX > 0) {
-        startX -= gridWidth;
+        startX -= dw;
       }
       g.setColor(Color.CYAN);
-      for (int x = startX; x < getWidth(); x += gridWidth) {
-        for (int y = startY; y > 0; y -= gridHeight) {
-          g.drawLine(x, y, x, y - gridHeight);
-          g.drawLine(x, y, x + gridWidth, y);
+      for (int x = startX; x < getWidth(); x += dw) {
+        for (int y = startY; y > 0; y -= dh) {
+          g.drawLine(x, y, x, y - dh);
+          g.drawLine(x, y, x + dh, y);
         }
       }
     }
