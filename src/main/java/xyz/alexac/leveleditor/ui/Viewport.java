@@ -99,8 +99,8 @@ public class Viewport
     if (e.isShiftDown()) {
       if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
         zPlane += e.getWheelRotation();
-        if (zPlane < -0.5) {
-          zPlane = -1;
+        if (zPlane < 0) {
+          zPlane = 0;
         }
         repaint();
       }
@@ -183,7 +183,7 @@ public class Viewport
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
       final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
       final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
-      Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
+      Vector2D zPlaneOrigin = findOrigin(zPlane * Math.pow(2, -unit), 0);
       int startX = zPlaneOrigin.x;
       int startY = zPlaneOrigin.y;
       while (startX > 0) {
@@ -194,6 +194,14 @@ public class Viewport
         for (int y = startY; y > 0; y -= dh) {
           g.drawLine(x, y, x, y - dh);
           g.drawLine(x, y, x + dw, y);
+        }
+      }
+      for (int x = startX; x < getWidth(); x += dw) {
+        for (int y = startY; y < getHeight(); y += dh) {
+          g.drawLine(x, y, x - dw / 2, y + dh / 2);
+          g.drawLine(x, y, x + dw / 2, y + dh / 2);
+          g.drawLine(x, y + dh, x - dw / 2, y + dh / 2);
+          g.drawLine(x, y + dh, x + dw / 2, y + dh / 2);
         }
       }
     }
@@ -291,12 +299,12 @@ public class Viewport
     g.setColor(Color.DARK_GRAY);
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    paintMainGrid(g);
-
     renderVoxels(g);
     renderImages(g);
 
     paintVoxelsGrid(g);
+
+    paintMainGrid(g);
 
     paintOrigin(g);
 
@@ -319,7 +327,7 @@ public class Viewport
     }
   }
 
-  private Vector2D findOrigin(int x, int y) {
+  private Vector2D findOrigin(double x, double y) {
     return origin.plus((int) ((x - y) * gridWidth / 2 * scale),
                        (int) (-(x + y) * gridHeight / 2 * scale));
   }
