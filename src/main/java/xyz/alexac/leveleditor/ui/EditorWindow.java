@@ -5,17 +5,25 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
+import javax.json.JsonReader;
 import javax.json.JsonWriter;
+import javax.json.stream.JsonGenerator;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import xyz.alexac.leveleditor.model.Block;
@@ -26,7 +34,7 @@ import xyz.alexac.leveleditor.model.Project;
  * @author alex-ac
  */
 public class EditorWindow extends javax.swing.JFrame implements Observer {
-  private final Project project = new Project();
+  private Project project = null;
   private final JFileChooser fileChooser = new JFileChooser();
   private File projectFile = null;
 
@@ -35,14 +43,11 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
    */
   public EditorWindow() {
     initComponents();
-    projectView.setProject(project);
-    viewport.setProject(project);
     FileNameExtensionFilter filter = new FileNameExtensionFilter(
                             "*.json - Level Editor project file.", "json");
     fileChooser.setFileFilter(filter);
+    setProject(new Project());
     projectView.getStateController().addObserver(this);
-    blockView.setVisible(false);
-    blockView.setProject(project);
   }
 
   @Override
@@ -71,6 +76,17 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
     }
   }
 
+  private void setProject(Project project) {
+    if (this.project == project) {
+      return;
+    }
+    this.project = project;
+    projectView.setProject(project);
+    viewport.setProject(project);
+    blockView.setVisible(false);
+    blockView.setProject(project);
+  }
+
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -89,6 +105,7 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
     viewport = new xyz.alexac.leveleditor.ui.Viewport();
     menuBar = new javax.swing.JMenuBar();
     fileMenu = new javax.swing.JMenu();
+    jMenuItem1 = new javax.swing.JMenuItem();
     saveProjectMenuItem = new javax.swing.JMenuItem();
     saveProjectAsMenuItem = new javax.swing.JMenuItem();
 
@@ -134,6 +151,15 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
       }
     });
 
+    jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.META_MASK));
+    jMenuItem1.setText("Open Project");
+    jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        openProject(evt);
+      }
+    });
+    fileMenu.add(jMenuItem1);
+
     saveProjectMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
     saveProjectMenuItem.setText("Save Project");
     saveProjectMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -170,9 +196,28 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
     doSaveProject();
   }//GEN-LAST:event_saveProjectAs
 
+  private void openProject(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openProject
+    if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    try {
+      File projectFile = fileChooser.getSelectedFile();
+      InputStream fileStream = new FileInputStream(projectFile);
+      InputStream bufferedStream = new BufferedInputStream(fileStream);
+      JsonReader reader = Json.createReader(bufferedStream);
+      Project project = Project.fromJSON(reader.readObject());
+      reader.close();
+      setProject(project);
+      this.projectFile = projectFile;
+    } catch (FileNotFoundException ex) {
+      Logger.getLogger(EditorWindow.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }//GEN-LAST:event_openProject
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private xyz.alexac.leveleditor.ui.BlockView blockView;
   private javax.swing.JMenu fileMenu;
+  private javax.swing.JMenuItem jMenuItem1;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JSplitPane jSplitPane1;
@@ -187,10 +232,16 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
     try {
       OutputStream fileStream = new FileOutputStream(projectFile);
       OutputStream bufferedStream = new BufferedOutputStream(fileStream);
-      JsonWriter writer = Json.createWriter(bufferedStream);
+      StringWriter stringWriter = new StringWriter();
+      Map<String, Boolean> config = new HashMap<>();
+      config.put(JsonGenerator.PRETTY_PRINTING, true);
+      JsonWriter writer = Json.createWriterFactory(config).createWriter(
+                 stringWriter);
       writer.writeObject(project.toJSON().build());
       writer.close();
-    } catch (FileNotFoundException ex) {
+      bufferedStream.write(stringWriter.toString().getBytes());
+      bufferedStream.close();
+    } catch (Exception ex) {
       Logger.getLogger(EditorWindow.class.getName()).log(Level.SEVERE, null, ex);
     }
   }

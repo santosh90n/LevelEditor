@@ -49,7 +49,7 @@ public class BlockViewportController implements ViewportController, Observer {
 
   @Override
   public int getMode() {
-    return Viewport.MODE_DEFAULT;
+    return Viewport.MODE_VOXEL;
   }
 
   @Override

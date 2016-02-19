@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Set;
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
@@ -140,5 +142,20 @@ public class Project extends Observable implements JsonSerializable {
             .add("gridHeight", gridHeight)
             .add("themes", themes)
             .add("blocks", blocks);
+  }
+
+  public static Project fromJSON(JsonObject object) {
+    Project project = new Project();
+    project.setGridWidth(object.getInt("gridWidth"));
+    project.setGridHeight(object.getInt("gridHeight"));
+    JsonArray themes = object.getJsonArray("themes");
+    for (int i = 0; i < themes.size(); ++i) {
+      project.addTheme(themes.getString(i));
+    }
+    JsonArray blocks = object.getJsonArray("blocks");
+    for (int i = 0; i < blocks.size(); ++i) {
+      project.addBlock(Block.fromJSON(blocks.getJsonObject(i)));
+    }
+    return project;
   }
 }

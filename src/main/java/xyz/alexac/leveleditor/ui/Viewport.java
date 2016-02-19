@@ -188,7 +188,7 @@ public class Viewport extends JComponent implements Observer, MouseListener,
       for (int x = startX; x < getWidth(); x += dw) {
         for (int y = startY; y > 0; y -= dh) {
           g.drawLine(x, y, x, y - dh);
-          g.drawLine(x, y, x + dh, y);
+          g.drawLine(x, y, x + dw, y);
         }
       }
     }

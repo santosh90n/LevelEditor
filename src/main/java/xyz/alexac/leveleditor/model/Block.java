@@ -6,8 +6,10 @@
 package xyz.alexac.leveleditor.model;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -18,9 +20,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
@@ -52,7 +56,7 @@ public class Block extends Observable implements JsonSerializable {
   }
 
   public void setDefaultImage(BufferedImage image) {
-    if (image.equals(defaultImage)) {
+    if (image == defaultImage) {
       return;
     }
     defaultImage = image;
@@ -140,9 +144,19 @@ public class Block extends Observable implements JsonSerializable {
     ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
     OutputStream base64Stream = Base64.getEncoder().wrap(byteArrayStream);
     OutputStream gzipStream = new GZIPOutputStream(base64Stream);
-    ImageIO.write(image, "image/png", gzipStream);
+    ImageIO.write(image, "png", gzipStream);
     gzipStream.close();
     return byteArrayStream.toString();
+  }
+
+  private static BufferedImage decodeImage(String data) throws IOException {
+    ByteArrayInputStream byteArrayStream = new ByteArrayInputStream(data.
+                         getBytes());
+    InputStream base64Stream = Base64.getDecoder().wrap(byteArrayStream);
+    InputStream gzipStream = new GZIPInputStream(base64Stream);
+    BufferedImage image = ImageIO.read(gzipStream);
+    gzipStream.close();
+    return image;
   }
 
   @Override
@@ -166,5 +180,25 @@ public class Block extends Observable implements JsonSerializable {
       Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
     }
     return builder;
+  }
+
+  static Block fromJSON(JsonObject object) {
+    Block block = new Block();
+    block.setName(object.getString("name"));
+    block.setOffset(Vector2D.fromJSON(object.getJsonObject("offset")));
+    JsonObject themedImages = object.getJsonObject("themedImages");
+    try {
+      block.setDefaultImage(decodeImage(object.getString("defaultImage")));
+    } catch (IOException ex) {
+      Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    for (String theme : themedImages.keySet()) {
+      try {
+        block.setTheme(theme, decodeImage(themedImages.getString(theme)));
+      } catch (IOException ex) {
+        Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+    return block;
   }
 }

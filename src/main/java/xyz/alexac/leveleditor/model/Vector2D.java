@@ -6,6 +6,7 @@
 package xyz.alexac.leveleditor.model;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
@@ -73,4 +74,7 @@ public class Vector2D implements JsonSerializable {
     return "Vector2D(" + x + "," + y + ")";
   }
 
+  static Vector2D fromJSON(JsonObject object) {
+    return new Vector2D(object.getInt("x"), object.getInt("y"));
+  }
 }
