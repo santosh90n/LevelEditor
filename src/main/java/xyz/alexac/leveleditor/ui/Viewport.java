@@ -175,24 +175,6 @@ public class Viewport extends JComponent implements Observer, MouseListener,
       }
     }
 
-    if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
-      final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
-      final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
-      Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
-      startX = zPlaneOrigin.x;
-      startY = zPlaneOrigin.y;
-      while (startX > 0) {
-        startX -= dw;
-      }
-      g.setColor(Color.CYAN);
-      for (int x = startX; x < getWidth(); x += dw) {
-        for (int y = startY; y > 0; y -= dh) {
-          g.drawLine(x, y, x, y - dh);
-          g.drawLine(x, y, x + dw, y);
-        }
-      }
-    }
-
     if (controller != null) {
       List<RenderVoxel> voxels = controller.getVoxels(this.gridWidth,
                                                       this.gridHeight);
@@ -247,6 +229,24 @@ public class Viewport extends JComponent implements Observer, MouseListener,
                     iOrigin.x + (int) (image.image.getWidth() * scale),
                     iOrigin.y + (int) (image.image.getHeight() * scale), 0, 0,
                     image.image.getWidth(), image.image.getHeight(), null);
+      }
+    }
+
+    if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
+      final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
+      final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
+      Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
+      startX = zPlaneOrigin.x;
+      startY = zPlaneOrigin.y;
+      while (startX > 0) {
+        startX -= dw;
+      }
+      g.setColor(Color.CYAN);
+      for (int x = startX; x < getWidth(); x += dw) {
+        for (int y = startY; y > 0; y -= dh) {
+          g.drawLine(x, y, x, y - dh);
+          g.drawLine(x, y, x + dw, y);
+        }
       }
     }
 

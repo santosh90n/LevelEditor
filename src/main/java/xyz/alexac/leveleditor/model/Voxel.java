@@ -5,6 +5,10 @@
  */
 package xyz.alexac.leveleditor.model;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+
 /**
  * Voxel is a cube which edges are parallel to x, y, z axes. Voxel can be
  * described by 4 integer numbers.
@@ -22,7 +26,7 @@ package xyz.alexac.leveleditor.model;
  *
  * @author alex-ac
  */
-public class Voxel {
+public class Voxel implements JsonSerializable {
   public final int a;
   public final int b;
   public final int c;
@@ -128,5 +132,19 @@ public class Voxel {
 
   public Voxel moved(Vector3D offset) {
     return new Voxel(n, a + offset.x * n, b + offset.y * n, c + offset.z * n);
+  }
+
+  @Override
+  public JsonObjectBuilder toJSON() {
+    return Json.createObjectBuilder()
+            .add("n", n)
+            .add("a", a)
+            .add("b", b)
+            .add("c", c);
+  }
+
+  public static Voxel fromJSON(JsonObject object) {
+    return new Voxel(object.getInt("n"), object.getInt("a"), object.getInt("b"),
+                     object.getInt("c"));
   }
 }

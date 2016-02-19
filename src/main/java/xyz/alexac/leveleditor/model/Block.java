@@ -24,6 +24,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
@@ -169,11 +171,16 @@ public class Block extends Observable implements JsonSerializable {
         Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
       }
     }
+    JsonArrayBuilder voxels = Json.createArrayBuilder();
+    for (Voxel v : this.voxels) {
+      voxels.add(v.toJSON());
+    }
 
     JsonObjectBuilder builder = Json.createObjectBuilder()
                       .add("name", name)
                       .add("offset", offset.toJSON())
-                      .add("themedImages", themedImages);
+                      .add("themedImages", themedImages)
+                      .add("voxels", voxels);
     try {
       builder.add("defaultImage", encodeImage(defaultImage));
     } catch (IOException ex) {
@@ -198,6 +205,10 @@ public class Block extends Observable implements JsonSerializable {
       } catch (IOException ex) {
         Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
       }
+    }
+    JsonArray voxels = object.getJsonArray("voxels");
+    for (int i = 0; i < voxels.size(); ++i) {
+      block.setVoxel(Voxel.fromJSON(voxels.getJsonObject(i)));
     }
     return block;
   }
