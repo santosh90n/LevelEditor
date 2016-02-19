@@ -32,6 +32,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import xyz.alexac.leveleditor.model.Block;
 import xyz.alexac.leveleditor.model.Project;
+import xyz.alexac.leveleditor.model.Vector2D;
 
 /**
  *
@@ -251,6 +252,14 @@ public class BlockView extends javax.swing.JPanel implements Observer {
             nameField.setText(block.getName());
           }
           break;
+        case "offset":
+          if (block.getOffset().x != (Integer) xSpinner.getModel().getValue()) {
+            xSpinner.getModel().setValue(block.getOffset().x);
+          }
+          if (block.getOffset().y != (Integer) ySpinner.getModel().getValue()) {
+            ySpinner.getModel().setValue(block.getOffset().y);
+          }
+          break;
       }
     }
   }
@@ -282,6 +291,11 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     removeImageButton = new javax.swing.JButton();
     newImageTheme = new javax.swing.JComboBox<>();
     themeLabel = new javax.swing.JLabel();
+    offsetLabel = new javax.swing.JLabel();
+    xSpinner = new javax.swing.JSpinner();
+    ySpinner = new javax.swing.JSpinner();
+    offsetXLabel = new javax.swing.JLabel();
+    offsetYLabel = new javax.swing.JLabel();
 
     setBorder(javax.swing.BorderFactory.createTitledBorder("Block"));
     setLayout(new java.awt.GridBagLayout());
@@ -310,7 +324,7 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 1;
     gridBagConstraints.gridy = 0;
-    gridBagConstraints.gridwidth = 2;
+    gridBagConstraints.gridwidth = 3;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.weightx = 0.2;
     add(nameField, gridBagConstraints);
@@ -324,6 +338,7 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 3;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     add(addImageButton, gridBagConstraints);
 
@@ -334,7 +349,7 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.gridheight = 5;
+    gridBagConstraints.gridheight = 8;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.weightx = 0.2;
     gridBagConstraints.weighty = 0.1;
@@ -344,6 +359,7 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 4;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     add(removeImageButton, gridBagConstraints);
 
@@ -351,6 +367,7 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 2;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     add(newImageTheme, gridBagConstraints);
 
@@ -358,8 +375,53 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 1;
+    gridBagConstraints.gridwidth = 2;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
     add(themeLabel, gridBagConstraints);
+
+    offsetLabel.setText("Offset:");
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 5;
+    gridBagConstraints.gridwidth = 2;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+    add(offsetLabel, gridBagConstraints);
+
+    xSpinner.setModel(new javax.swing.SpinnerNumberModel());
+    xSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        changeOffsetX(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 3;
+    gridBagConstraints.gridy = 6;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    add(xSpinner, gridBagConstraints);
+
+    ySpinner.setModel(new javax.swing.SpinnerNumberModel());
+    ySpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        changeOffsetY(evt);
+      }
+    });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 3;
+    gridBagConstraints.gridy = 7;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    add(ySpinner, gridBagConstraints);
+
+    offsetXLabel.setText("x:");
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 6;
+    add(offsetXLabel, gridBagConstraints);
+
+    offsetYLabel.setText("y:");
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 7;
+    add(offsetYLabel, gridBagConstraints);
   }// </editor-fold>//GEN-END:initComponents
 
   private BufferedImage loadImage(File file) {
@@ -394,15 +456,34 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     }
   }//GEN-LAST:event_addImage
 
+  private void changeOffsetX(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_changeOffsetX
+    int value = (Integer) xSpinner.getModel().getValue();
+    if (block.getOffset().x != value) {
+      block.setOffset(new Vector2D(value, block.getOffset().y));
+    }
+  }//GEN-LAST:event_changeOffsetX
+
+  private void changeOffsetY(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_changeOffsetY
+    int value = (Integer) ySpinner.getModel().getValue();
+    if (block.getOffset().y != value) {
+      block.setOffset(new Vector2D(block.getOffset().x, value));
+    }
+  }//GEN-LAST:event_changeOffsetY
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton addImageButton;
   private javax.swing.JTextField nameField;
   private javax.swing.JLabel nameLabel;
   private javax.swing.JComboBox<String> newImageTheme;
+  private javax.swing.JLabel offsetLabel;
+  private javax.swing.JLabel offsetXLabel;
+  private javax.swing.JLabel offsetYLabel;
   private javax.swing.JButton removeImageButton;
   private javax.swing.JLabel themeLabel;
   private javax.swing.JList<String> themesList;
   private javax.swing.JScrollPane themesListScroll;
+  private javax.swing.JSpinner xSpinner;
+  private javax.swing.JSpinner ySpinner;
   // End of variables declaration//GEN-END:variables
 
   void setBlock(Block b) {

@@ -18,8 +18,14 @@ public class BlockInstance {
     this.block = block;
   }
 
-  public boolean intersects(BlockInstance instance) {
+  public boolean doesIntersects(BlockInstance instance) {
+    for (Voxel v1 : block.getVoxels()) {
+      for (Voxel v2 : instance.block.getVoxels()) {
+        if (v1.doesIntersects(v2)) {
+          return true;
+        }
+      }
+    }
     return false;
   }
-
 }

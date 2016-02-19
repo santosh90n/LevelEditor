@@ -14,6 +14,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JComponent;
@@ -189,6 +190,63 @@ public class Viewport extends JComponent implements Observer, MouseListener,
           g.drawLine(x, y, x, y - dh);
           g.drawLine(x, y, x + dh, y);
         }
+      }
+    }
+
+    if (controller != null) {
+      List<RenderVoxel> voxels = controller.getVoxels(this.gridWidth,
+                                                      this.gridHeight);
+      voxels.sort((RenderVoxel a, RenderVoxel b) -> {
+        if (a.z + a.u < b.z + b.u) {
+          return -1;
+        }
+        if (a.z + b.u > b.z + b.u) {
+          return 1;
+        }
+        if (a.x + a.y > b.x + b.y) {
+          return -1;
+        }
+        if (a.x + a.y < b.x + b.y) {
+          return 1;
+        }
+        if (a.x - a.y < b.x - b.y) {
+          return -1;
+        }
+        return 1;
+      });
+      for (RenderVoxel v : voxels) {
+        Vector2D vOrigin =
+                 origin.plus((int) ((v.x - v.y - v.u) * gridWidth / 2),
+                             (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u *
+                                                                           2) *
+                                                                    gridHeight));
+        g.drawImage(v.top, vOrigin.x, vOrigin.y, (int) (v.u * gridWidth),
+                    (int) (v.u *
+                           gridHeight), 0,
+                    0, v.top.getWidth(), v.top.getHeight(), null);
+        g.drawImage(v.left, vOrigin.x, vOrigin.y + (int) (v.u * gridHeight / 2),
+                    (int) (v.u *
+                           gridWidth /
+                           2),
+                    (int) (v.u * 3 / 2 * gridHeight), 0, 0, v.left.getWidth(),
+                    v.left.
+                    getHeight(),
+                    null);
+        g.drawImage(v.right, vOrigin.x + (int) (v.u * gridWidth / 2),
+                    vOrigin.y + (int) (v.u *
+                                       gridHeight /
+                                       2),
+                    (int) (v.u * gridWidth / 2),
+                    (int) (v.u * 3 / 2 * gridHeight), 0, 0,
+                    v.right.getWidth(), v.right.getHeight(), null);
+      }
+
+      for (ViewportController.Image image : controller.getImages()) {
+        Vector2D iOrigin = origin.plus(image.offset.scale(scale));
+        g.drawImage(image.image, iOrigin.x, iOrigin.y,
+                    iOrigin.x + (int) (image.image.getWidth() * scale),
+                    iOrigin.y + (int) (image.image.getHeight() * scale), 0, 0,
+                    image.image.getWidth(), image.image.getHeight(), null);
       }
     }
 

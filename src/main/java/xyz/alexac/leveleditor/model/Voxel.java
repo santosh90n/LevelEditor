@@ -27,6 +27,7 @@ public class Voxel {
   public final int b;
   public final int c;
   public final int n;
+  protected final int pow_2_n;
 
   public final float u;
   public final float x;
@@ -39,11 +40,16 @@ public class Voxel {
     }
 
     this.n = n;
+    int pow_2_n = 1;
+    for (int i = 0; i < n; ++i) {
+      pow_2_n <<= 1;
+    }
+    this.pow_2_n = pow_2_n;
 
-    u = (float) Math.pow(2.0, -n);
-    this.a = (int) Math.ceil(x / u);
-    this.b = (int) Math.ceil(y / u);
-    int c = (int) Math.ceil(z / u);
+    u = (float) 1 / pow_2_n;
+    this.a = (int) Math.ceil(x * pow_2_n);
+    this.b = (int) Math.ceil(y * pow_2_n);
+    int c = (int) Math.ceil(z * pow_2_n);
     if (c < -1) {
       c = -1;
     }
@@ -53,11 +59,17 @@ public class Voxel {
     this.z = (float) u * c;
   }
 
-  Voxel(int n, int a, int b, int c) {
+  public Voxel(int n, int a, int b, int c) {
     if (n < 0) {
       n = 0;
     }
     this.n = n;
+    int pow_2_n = 1;
+    for (int i = 0; i < n; ++i) {
+      pow_2_n <<= 1;
+    }
+    this.pow_2_n = pow_2_n;
+
     if (c < -1) {
       c = -1;
     }
@@ -66,14 +78,15 @@ public class Voxel {
     this.b = b;
     this.c = c;
 
-    u = (float) Math.pow(2.0, -n);
+    u = (float) 1 / pow_2_n;
     x = u * a;
     y = u * b;
     z = u * c;
   }
 
-  Voxel() {
+  public Voxel() {
     n = a = b = c = 0;
+    pow_2_n = 1;
     u = 1.0f;
     x = y = z = 0.0f;
   }
@@ -111,5 +124,9 @@ public class Voxel {
   public String toString() {
     return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z +
            "]";
+  }
+
+  public Voxel moved(Vector3D offset) {
+    return new Voxel(n, a + offset.x * n, b + offset.y * n, c + offset.z * n);
   }
 }

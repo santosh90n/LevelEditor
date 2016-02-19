@@ -9,7 +9,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
@@ -28,7 +30,8 @@ import javax.json.JsonObjectBuilder;
 public class Block extends Observable implements JsonSerializable {
   private String name = "block";
   private BufferedImage defaultImage = null;
-  private Map<String, BufferedImage> themedImages = new TreeMap<>();
+  private final Map<String, BufferedImage> themedImages = new TreeMap<>();
+  private final List<Voxel> voxels = new ArrayList<>();
   private Vector2D offset = new Vector2D();
 
   public String getName() {
@@ -102,6 +105,35 @@ public class Block extends Observable implements JsonSerializable {
     this.offset = offset;
     setChanged();
     notifyObservers("offset");
+  }
+
+  public List<Voxel> getVoxels() {
+    return new ArrayList<>(voxels);
+  }
+
+  public void setVoxel(Voxel v) {
+    if (!voxels.contains(v)) {
+      return;
+    }
+    for (Voxel v1 : voxels) {
+      if (v1.doesIntersects(v)) {
+        return;
+      }
+    }
+    voxels.add(v);
+    setChanged();
+    notifyObservers("voxels");
+  }
+
+  public int getVoxelsCount() {
+    return voxels.size();
+  }
+
+  public Voxel getVoxel(int i) {
+    if (voxels.size() >= i) {
+      return voxels.get(i);
+    }
+    return null;
   }
 
   private String encodeImage(BufferedImage image) throws IOException {

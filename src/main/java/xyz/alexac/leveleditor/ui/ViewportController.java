@@ -5,8 +5,8 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.awt.image.BufferedImage;
 import java.util.List;
-import xyz.alexac.leveleditor.model.BlockInstance;
 import xyz.alexac.leveleditor.model.Vector2D;
 import xyz.alexac.leveleditor.model.Voxel;
 
@@ -21,5 +21,17 @@ public interface ViewportController {
 
   public void voxelClicked(Voxel v);
 
-  public List<BlockInstance> getBlocks();
+  public List<RenderVoxel> getVoxels(int gridWidth, int gridHeight);
+
+  public class Image {
+    public final Vector2D offset;
+    public final BufferedImage image;
+
+    public Image(Vector2D offset, BufferedImage image) {
+      this.offset = offset;
+      this.image = image;
+    }
+  }
+
+  public List<Image> getImages();
 }

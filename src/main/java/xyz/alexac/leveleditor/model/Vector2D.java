@@ -42,6 +42,10 @@ public class Vector2D implements JsonSerializable {
     return new Vector2D(this.x + x, this.y + y);
   }
 
+  public Vector2D scale(float scale) {
+    return new Vector2D((int) (x * scale), (int) (y * scale));
+  }
+
   @Override
   public JsonObjectBuilder toJSON() {
     return Json.createObjectBuilder()
