@@ -22,12 +22,15 @@ import xyz.alexac.leveleditor.model.Project;
 import xyz.alexac.leveleditor.model.Vector2D;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
-public class Viewport extends JComponent implements Observer, MouseListener,
-                                                    MouseMotionListener,
-                                                    MouseWheelListener {
+public class Viewport
+        extends JComponent
+        implements Observer,
+                   MouseListener,
+                   MouseMotionListener,
+                   MouseWheelListener {
   public final static int MODE_DEFAULT = 0;
   public final static int MODE_VOXEL = 1;
   public final static int MODE_TILES = 2;
@@ -127,7 +130,7 @@ public class Viewport extends JComponent implements Observer, MouseListener,
       origin = new Vector2D(width / 2, height / 2);
     } else if (getWidth() != width || getHeight() != height) {
       origin = origin.plus(width / 2, height / 2)
-      .minus(getWidth() / 2, getHeight() / 2);
+              .minus(getWidth() / 2, getHeight() / 2);
     }
     super.setBounds(x, y, width, height);
   }
@@ -148,12 +151,9 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     }
   }
 
-  @Override
-  public void paint(Graphics g) {
-    int gridWidth = (int) (this.gridWidth * scale);
-    int gridHeight = (int) (this.gridHeight * scale);
-    g.setColor(Color.DARK_GRAY);
-    g.fillRect(0, 0, getWidth(), getHeight());
+  private void paintMainGrid(Graphics g) {
+    final int gridWidth = (int) (this.gridWidth * scale);
+    final int gridHeight = (int) (this.gridHeight * scale);
 
     int startX = origin.x;
     while (startX > 0) {
@@ -167,77 +167,25 @@ public class Viewport extends JComponent implements Observer, MouseListener,
     g.setColor(Color.WHITE);
     for (int x = startX; x < getWidth() + gridWidth / 2; x += gridWidth) {
       for (int y = startY; y < getHeight() + gridHeight / 2 && y <= origin.y;
-           y += gridHeight) {
+              y += gridHeight) {
         g.drawLine(x - gridWidth / 2, y - gridHeight / 2,
                    x + gridWidth / 2, y + gridHeight / 2);
         g.drawLine(x - gridWidth / 2, y + gridHeight / 2,
                    x + gridWidth / 2, y - gridHeight / 2);
       }
     }
+  }
 
-    if (controller != null) {
-      List<RenderVoxel> voxels = controller.getVoxels(this.gridWidth,
-                                                      this.gridHeight);
-      voxels.sort((RenderVoxel a, RenderVoxel b) -> {
-        if (a.z + a.u < b.z + b.u) {
-          return -1;
-        }
-        if (a.z + b.u > b.z + b.u) {
-          return 1;
-        }
-        if (a.x + a.y > b.x + b.y) {
-          return -1;
-        }
-        if (a.x + a.y < b.x + b.y) {
-          return 1;
-        }
-        if (a.x - a.y < b.x - b.y) {
-          return -1;
-        }
-        return 1;
-      });
-      for (RenderVoxel v : voxels) {
-        Vector2D vOrigin =
-                 origin.plus((int) ((v.x - v.y - v.u) * gridWidth / 2),
-                             (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u *
-                                                                           2) *
-                                                                    gridHeight));
-        g.drawImage(v.top, vOrigin.x, vOrigin.y, (int) (v.u * gridWidth),
-                    (int) (v.u *
-                           gridHeight), 0,
-                    0, v.top.getWidth(), v.top.getHeight(), null);
-        g.drawImage(v.left, vOrigin.x, vOrigin.y + (int) (v.u * gridHeight / 2),
-                    (int) (v.u *
-                           gridWidth /
-                           2),
-                    (int) (v.u * 3 / 2 * gridHeight), 0, 0, v.left.getWidth(),
-                    v.left.
-                    getHeight(),
-                    null);
-        g.drawImage(v.right, vOrigin.x + (int) (v.u * gridWidth / 2),
-                    vOrigin.y + (int) (v.u *
-                                       gridHeight /
-                                       2),
-                    (int) (v.u * gridWidth / 2),
-                    (int) (v.u * 3 / 2 * gridHeight), 0, 0,
-                    v.right.getWidth(), v.right.getHeight(), null);
-      }
-
-      for (ViewportController.Image image : controller.getImages()) {
-        Vector2D iOrigin = origin.plus(image.offset.scale(scale));
-        g.drawImage(image.image, iOrigin.x, iOrigin.y,
-                    iOrigin.x + (int) (image.image.getWidth() * scale),
-                    iOrigin.y + (int) (image.image.getHeight() * scale), 0, 0,
-                    image.image.getWidth(), image.image.getHeight(), null);
-      }
-    }
+  private void paintVoxelsGrid(Graphics g) {
+    final int gridWidth = (int) (this.gridWidth * scale);
+    final int gridHeight = (int) (this.gridHeight * scale);
 
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
       final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
       final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
       Vector2D zPlaneOrigin = findOrigin(zPlane, 1);
-      startX = zPlaneOrigin.x;
-      startY = zPlaneOrigin.y;
+      int startX = zPlaneOrigin.x;
+      int startY = zPlaneOrigin.y;
       while (startX > 0) {
         startX -= dw;
       }
@@ -249,15 +197,110 @@ public class Viewport extends JComponent implements Observer, MouseListener,
         }
       }
     }
+  }
+
+  private void paintOrigin(Graphics g) {
+    final int gridWidth = (int) (this.gridWidth * scale);
+    final int gridHeight = (int) (this.gridHeight * scale);
 
     g.setColor(Color.BLUE);
     g.fillOval(origin.x - 4, origin.y - 4, 8, 8);
+  }
 
+  private void paintText(Graphics g) {
     String scaleStr = new DecimalFormat("#0.0#")
-           .format(scale, new StringBuffer(), new FieldPosition(0))
-           .toString();
+            .format(scale, new StringBuffer(), new FieldPosition(0))
+            .toString();
     g.setColor(Color.YELLOW);
     g.drawString("Scale: " + scaleStr, getWidth() - 100, getHeight() - 20);
+  }
+
+  private static void sortVoxelsInRenderOrder(List<RenderVoxel> voxels) {
+    voxels.sort((RenderVoxel a, RenderVoxel b) -> {
+      if (a.z + a.u < b.z + b.u) {
+        return -1;
+      }
+      if (a.z + b.u > b.z + b.u) {
+        return 1;
+      }
+      if (a.x + a.y > b.x + b.y) {
+        return -1;
+      }
+      if (a.x + a.y < b.x + b.y) {
+        return 1;
+      }
+      if (a.x - a.y < b.x - b.y) {
+        return -1;
+      }
+      return 1;
+    });
+  }
+
+  private void renderVoxel(Graphics g, RenderVoxel v) {
+    final int gridWidth = (int) (this.gridWidth * scale);
+    final int gridHeight = (int) (this.gridHeight * scale);
+    // 2D coordinate of the top left point of the voxel's bounding rectangle.
+    Vector2D vOrigin =
+            origin.plus((int) ((v.x - v.y - v.u) * gridWidth / 2),
+                        (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u * 2)
+                        * gridHeight));
+    g.drawImage(v.top, vOrigin.x, vOrigin.y, (int) (v.u * gridWidth),
+                (int) (v.u * gridHeight), 0,
+                0, v.top.getWidth(), v.top.getHeight(), null);
+    g.drawImage(v.left, vOrigin.x, vOrigin.y + (int) (v.u * gridHeight / 2),
+                (int) (v.u * gridWidth / 2),
+                (int) (v.u * 3 / 2 * gridHeight), 0, 0, v.left.getWidth(),
+                v.left.
+                getHeight(),
+                null);
+    g.drawImage(v.right, vOrigin.x + (int) (v.u * gridWidth / 2),
+                vOrigin.y + (int) (v.u * gridHeight / 2),
+                (int) (v.u * gridWidth / 2),
+                (int) (v.u * 3 / 2 * gridHeight), 0, 0,
+                v.right.getWidth(), v.right.getHeight(), null);
+  }
+
+  private void renderVoxels(Graphics g) {
+    if (controller != null) {
+      List<RenderVoxel> voxels = controller.getVoxels(this.gridWidth,
+                                                      this.gridHeight);
+      sortVoxelsInRenderOrder(voxels);
+
+      for (RenderVoxel v : voxels) {
+        renderVoxel(g, v);
+      }
+    }
+  }
+
+  private void renderImages(Graphics g) {
+    if (controller != null) {
+      for (ViewportController.Image image : controller.getImages()) {
+        Vector2D iOrigin = origin.plus(image.offset.scale(scale));
+        g.drawImage(image.image, iOrigin.x, iOrigin.y,
+                    iOrigin.x + (int) (image.image.getWidth() * scale),
+                    iOrigin.y + (int) (image.image.getHeight() * scale), 0, 0,
+                    image.image.getWidth(), image.image.getHeight(), null);
+      }
+    }
+  }
+
+  @Override
+  public void paint(Graphics g) {
+    final int gridWidth = (int) (this.gridWidth * scale);
+    final int gridHeight = (int) (this.gridHeight * scale);
+    g.setColor(Color.DARK_GRAY);
+    g.fillRect(0, 0, getWidth(), getHeight());
+
+    paintMainGrid(g);
+
+    renderVoxels(g);
+    renderImages(g);
+
+    paintVoxelsGrid(g);
+
+    paintOrigin(g);
+
+    paintText(g);
   }
 
   @Override
