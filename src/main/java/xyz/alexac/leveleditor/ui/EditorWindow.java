@@ -55,12 +55,16 @@ public class EditorWindow extends javax.swing.JFrame implements Observer {
           Block b = stateController.getCurrentBlock();
           blockView.setBlock(b);
           if (b != null) {
-            this.viewport.setController(
-                    new BlockViewportController(b, () -> viewport.repaint()));
+            BlockViewportController controller =
+                                    new BlockViewportController(
+                                            b, () -> viewport.repaint());
+            this.viewport.setController(controller);
             blockView.setVisible(true);
+            blockView.setViewportController(controller);
           } else {
             this.viewport.setController(null);
             blockView.setVisible(false);
+            blockView.setViewportController(null);
           }
           break;
       }

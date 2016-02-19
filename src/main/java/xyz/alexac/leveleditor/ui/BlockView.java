@@ -41,6 +41,7 @@ import xyz.alexac.leveleditor.model.Vector2D;
 public class BlockView extends javax.swing.JPanel implements Observer {
 
   private Block block = null;
+  private BlockViewportController controller = null;
 
   private class BlockThemesListModel implements ListModel<String>, Observer {
     private final Set<ListDataListener> listeners = new HashSet<>();
@@ -343,6 +344,11 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     add(addImageButton, gridBagConstraints);
 
     themesList.setModel(themesListModel);
+    themesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+      public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+        changeTheme(evt);
+      }
+    });
     themesListScroll.setViewportView(themesList);
 
     gridBagConstraints = new java.awt.GridBagConstraints();
@@ -470,6 +476,12 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     }
   }//GEN-LAST:event_changeOffsetY
 
+  private void changeTheme(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_changeTheme
+    if (controller != null) {
+      controller.setTheme(themesList.getSelectedValue());
+    }
+  }//GEN-LAST:event_changeTheme
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton addImageButton;
   private javax.swing.JTextField nameField;
@@ -500,6 +512,18 @@ public class BlockView extends javax.swing.JPanel implements Observer {
     }
     themesListModel.setBlock(block);
     newImageThemeModel.setBlock(block);
+  }
+
+  public void setViewportController(BlockViewportController controller) {
+    if (controller == this.controller) {
+      return;
+    }
+    this.controller = controller;
+    if (this.controller != null) {
+      this.controller.setTheme(
+              themesList.isSelectionEmpty() ? "<default>" : themesList.
+                      getSelectedValue());
+    }
   }
 
   void setProject(Project project) {

@@ -23,6 +23,7 @@ public class BlockViewportController implements ViewportController, Observer {
   private final Block block;
   private final RenderBlockInstance renderBlockInstance;
   private final Runnable redraw;
+  private String theme = null;
 
   public BlockViewportController(Block b, Runnable redraw) {
     block = b;
@@ -32,9 +33,14 @@ public class BlockViewportController implements ViewportController, Observer {
   }
 
   @Override
+  public void dispose() {
+    block.deleteObserver(this);
+  }
+
+  @Override
   public List<Image> getImages() {
     List<Image> images = new ArrayList<>();
-    BufferedImage image = block.getImage("<default>");
+    BufferedImage image = block.getImage(theme);
     if (image != null) {
       images.add(new Image(block.getOffset(), image));
     }
@@ -66,4 +72,10 @@ public class BlockViewportController implements ViewportController, Observer {
   public void voxelClicked(Voxel v) {
   }
 
+  public void setTheme(String theme) {
+    if (this.theme != theme) {
+      this.theme = theme;
+      redraw.run();
+    }
+  }
 }

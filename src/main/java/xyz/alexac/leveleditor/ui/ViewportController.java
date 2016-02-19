@@ -34,4 +34,6 @@ public interface ViewportController {
   }
 
   public List<Image> getImages();
+
+  public void dispose();
 }
