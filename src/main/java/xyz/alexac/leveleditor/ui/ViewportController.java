@@ -5,14 +5,15 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import xyz.alexac.leveleditor.model.Vector2D;
 import xyz.alexac.leveleditor.model.Voxel;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
 public interface ViewportController {
   public int getMode();
@@ -22,6 +23,8 @@ public interface ViewportController {
   public void voxelClicked(Voxel v);
 
   public List<RenderVoxel> getVoxels(int gridWidth, int gridHeight);
+
+  public Color getCursorColor(Voxel cursor);
 
   public class Image {
     public final Vector2D offset;

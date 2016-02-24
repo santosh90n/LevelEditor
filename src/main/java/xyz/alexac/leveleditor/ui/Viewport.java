@@ -7,6 +7,8 @@ package xyz.alexac.leveleditor.ui;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -20,6 +22,8 @@ import java.util.Observer;
 import javax.swing.JComponent;
 import xyz.alexac.leveleditor.model.Project;
 import xyz.alexac.leveleditor.model.Vector2D;
+import xyz.alexac.leveleditor.model.Vector3D;
+import xyz.alexac.leveleditor.model.Voxel;
 
 /**
 
@@ -30,7 +34,8 @@ public class Viewport
         implements Observer,
                    MouseListener,
                    MouseMotionListener,
-                   MouseWheelListener {
+                   MouseWheelListener,
+                   KeyListener {
   public final static int MODE_DEFAULT = 0;
   public final static int MODE_VOXEL = 1;
   public final static int MODE_TILES = 2;
@@ -41,14 +46,17 @@ public class Viewport
   private int gridHeight = 128;
   private Vector2D lastPoint = null;
   private float scale = 1.0f;
-  private int zPlane = 0;
-  private int unit = 0;
+  private Voxel cursor = new Voxel();
 
   private ViewportController controller = null;
 
   public Viewport() {
-    this.addMouseListener(this);
-    this.addMouseWheelListener(this);
+    addMouseListener(this);
+    addMouseMotionListener(this);
+    addMouseWheelListener(this);
+    addKeyListener(this);
+    setFocusable(true);
+    setRequestFocusEnabled(true);
   }
 
   public void setController(ViewportController controller) {
@@ -61,11 +69,12 @@ public class Viewport
 
   @Override
   public void mouseClicked(MouseEvent e) {
+    requestFocusInWindow();
   }
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    origin = origin.plus(e.getX(), e.getY()).minus(lastPoint);
+    origin = origin.add(e.getX(), e.getY()).subtract(lastPoint).toInteger();
     lastPoint = new Vector2D(e.getX(), e.getY());
     repaint();
   }
@@ -84,43 +93,26 @@ public class Viewport
 
   @Override
   public void mousePressed(MouseEvent e) {
-    this.addMouseMotionListener(this);
     this.lastPoint = new Vector2D(e.getX(), e.getY());
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    this.removeMouseMotionListener(this);
     this.lastPoint = null;
   }
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    if (e.isShiftDown()) {
-      if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
-        zPlane += e.getWheelRotation();
-        if (zPlane < 0) {
-          zPlane = 0;
-        }
-        repaint();
-      }
-    } else if (e.isAltDown()) {
-      if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
-        unit += e.getWheelRotation();
-        if (unit < 0) {
-          unit = 0;
-        }
-        repaint();
-      }
-    } else {
-      float scale = this.scale + e.getWheelRotation() * 0.01f;
-      if (scale < 0.1f) {
-        scale = 0.1f;
-      }
-      if (this.scale != scale) {
-        this.scale = scale;
-        repaint();
-      }
+    float scale = this.scale + e.getWheelRotation() * 0.01f;
+    if (scale < 0.1f) {
+      scale = 0.1f;
+    }
+    if (scale > 4) {
+      scale = 4;
+    }
+    if (this.scale != scale) {
+      this.scale = scale;
+      repaint();
     }
   }
 
@@ -129,8 +121,8 @@ public class Viewport
     if (origin == null) {
       origin = new Vector2D(width / 2, height / 2);
     } else if (getWidth() != width || getHeight() != height) {
-      origin = origin.plus(width / 2, height / 2)
-              .minus(getWidth() / 2, getHeight() / 2);
+      origin = origin.add(width / 2, height / 2)
+              .subtract(getWidth() / 2, getHeight() / 2).toInteger();
     }
     super.setBounds(x, y, width, height);
   }
@@ -176,34 +168,23 @@ public class Viewport
     }
   }
 
-  private void paintVoxelsGrid(Graphics g) {
-    final int gridWidth = (int) (this.gridWidth * scale);
-    final int gridHeight = (int) (this.gridHeight * scale);
-
+  private void paintCursor(Graphics g) {
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
-      final int dw = (int) Math.ceil(gridWidth / Math.pow(2, unit));
-      final int dh = (int) Math.ceil(gridHeight / Math.pow(2, unit));
-      Vector2D zPlaneOrigin = findOrigin(zPlane * Math.pow(2, -unit), 0);
-      int startX = zPlaneOrigin.x;
-      int startY = zPlaneOrigin.y;
-      while (startX > 0) {
-        startX -= dw;
-      }
-      g.setColor(Color.CYAN);
-      for (int x = startX; x < getWidth(); x += dw) {
-        for (int y = startY; y > 0; y -= dh) {
-          g.drawLine(x, y, x, y - dh);
-          g.drawLine(x, y, x + dw, y);
-        }
-      }
-      for (int x = startX; x < getWidth(); x += dw) {
-        for (int y = startY; y < getHeight(); y += dh) {
-          g.drawLine(x, y, x - dw / 2, y + dh / 2);
-          g.drawLine(x, y, x + dw / 2, y + dh / 2);
-          g.drawLine(x, y + dh, x - dw / 2, y + dh / 2);
-          g.drawLine(x, y + dh, x + dw / 2, y + dh / 2);
-        }
-      }
+      g.setColor(controller.getCursorColor(cursor));
+      Vector2D origin = findOrigin(cursor.x, cursor.y)
+              .subtract(0, cursor.z * gridHeight * scale)
+              .toInteger();
+      final int dw = (int) (cursor.u * gridWidth * scale / 2);
+      final int dh = (int) (cursor.u * gridHeight * scale / 2);
+      g.drawLine(origin.x, origin.y, origin.x - dw, origin.y - dh);
+      g.drawLine(origin.x, origin.y, origin.x + dw, origin.y - dh);
+      g.drawLine(origin.x, origin.y, origin.x, origin.y - 2 * dh);
+      g.drawLine(origin.x - dw, origin.y - dh, origin.x - dw, origin.y - 3 * dh);
+      g.drawLine(origin.x + dw, origin.y - dh, origin.x + dw, origin.y - 3 * dh);
+      g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
+      g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
+      g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
+      g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
     }
   }
 
@@ -249,9 +230,9 @@ public class Viewport
     final int gridHeight = (int) (this.gridHeight * scale);
     // 2D coordinate of the top left point of the voxel's bounding rectangle.
     Vector2D vOrigin =
-            origin.plus((int) ((v.x - v.y - v.u) * gridWidth / 2),
-                        (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u * 2)
-                        * gridHeight));
+            origin.add((int) ((v.x - v.y - v.u) * gridWidth / 2),
+                       (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u * 2)
+                       * gridHeight)).toInteger();
     g.drawImage(v.top, vOrigin.x, vOrigin.y, (int) (v.u * gridWidth),
                 (int) (v.u * gridHeight), 0,
                 0, v.top.getWidth(), v.top.getHeight(), null);
@@ -283,7 +264,7 @@ public class Viewport
   private void renderImages(Graphics g) {
     if (controller != null) {
       for (ViewportController.Image image : controller.getImages()) {
-        Vector2D iOrigin = origin.plus(image.offset.scale(scale));
+        Vector2D iOrigin = origin.add(image.offset.multiply(scale)).toInteger();
         g.drawImage(image.image, iOrigin.x, iOrigin.y,
                     iOrigin.x + (int) (image.image.getWidth() * scale),
                     iOrigin.y + (int) (image.image.getHeight() * scale), 0, 0,
@@ -302,9 +283,9 @@ public class Viewport
     renderVoxels(g);
     renderImages(g);
 
-    paintVoxelsGrid(g);
-
     paintMainGrid(g);
+
+    paintCursor(g);
 
     paintOrigin(g);
 
@@ -328,7 +309,51 @@ public class Viewport
   }
 
   private Vector2D findOrigin(double x, double y) {
-    return origin.plus((int) ((x - y) * gridWidth / 2 * scale),
-                       (int) (-(x + y) * gridHeight / 2 * scale));
+    return origin.add((int) ((x - y) * gridWidth / 2 * scale),
+                      (int) (-(x + y) * gridHeight / 2 * scale)).toInteger();
   }
+
+  @Override
+  public void keyTyped(KeyEvent e) {
+  }
+
+  @Override
+  public void keyPressed(KeyEvent e) {
+  }
+
+  @Override
+  public void keyReleased(KeyEvent e) {
+    if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
+      switch (e.getKeyCode()) {
+        case KeyEvent.VK_UP:
+          if (e.isShiftDown()) {
+            if (cursor.c < 16) {
+              cursor = cursor.moved(new Vector3D(0, 0, 1));
+            }
+          } else {
+            cursor = cursor.moved(new Vector3D(0, 1, 0));
+          }
+          repaint();
+          break;
+        case KeyEvent.VK_DOWN:
+          if (e.isShiftDown()) {
+            if (cursor.c > -1) {
+              cursor = cursor.moved(new Vector3D(0, 0, -1));
+            }
+          } else {
+            cursor = cursor.moved(new Vector3D(0, -1, 0));
+          }
+          break;
+        case KeyEvent.VK_LEFT:
+          cursor = cursor.moved(new Vector3D(-1, 0, 0));
+          repaint();
+          break;
+        case KeyEvent.VK_RIGHT:
+          cursor = cursor.moved(new Vector3D(1, 0, 0));
+          repaint();
+          break;
+      }
+    }
+  }
+
 }

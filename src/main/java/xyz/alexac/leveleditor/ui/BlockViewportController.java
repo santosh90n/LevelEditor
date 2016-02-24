@@ -5,6 +5,7 @@
  */
 package xyz.alexac.leveleditor.ui;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +17,12 @@ import xyz.alexac.leveleditor.model.Vector3D;
 import xyz.alexac.leveleditor.model.Voxel;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
-public class BlockViewportController implements ViewportController, Observer {
+public class BlockViewportController
+        implements ViewportController,
+                   Observer {
   private final Block block;
   private final RenderBlockInstance renderBlockInstance;
   private final Runnable redraw;
@@ -77,5 +80,15 @@ public class BlockViewportController implements ViewportController, Observer {
       this.theme = theme;
       redraw.run();
     }
+  }
+
+  @Override
+  public Color getCursorColor(Voxel cursor) {
+    for (Voxel v : block.getVoxels()) {
+      if (v.doesIntersects(cursor)) {
+        return Color.RED;
+      }
+    }
+    return Color.BLUE;
   }
 }

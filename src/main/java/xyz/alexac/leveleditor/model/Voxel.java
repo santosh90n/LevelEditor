@@ -10,28 +10,29 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
- * Voxel is a cube which edges are parallel to x, y, z axes. Voxel can be
- * described by 4 integer numbers.
- *
- * a, b, c, n are integer. n >= 0, c >= -1
- *
- * But more comfortable values are float:
- *
- * u - the size. x, y, z - coordinates of the origin point (the point with
- * minimum coordinates).
- *
- * u = 2 ^ (- n) x = a * u; y = b * u; z = c * u.
- *
- * It's preferred to operate with integer values.
- *
- * @author alex-ac
+ Voxel is a cube which edges are parallel to x, y, z axes. Voxel can be
+ described by 4 integer numbers.
+
+ a, b, c, n are integer. n >= 0, c >= -1
+
+ But more comfortable values are float:
+
+ u - the size. x, y, z - coordinates of the origin point (the point with
+ minimum coordinates).
+
+ u = 2 ^ (- n) x = a * u; y = b * u; z = c * u.
+
+ It's preferred to operate with integer values.
+
+ @author alex-ac
  */
-public class Voxel implements JsonSerializable {
+public class Voxel
+        implements JsonSerializable {
   public final int a;
   public final int b;
   public final int c;
   public final int n;
-  protected final int pow_2_n;
+  public final int p;
 
   public final float u;
   public final float x;
@@ -48,7 +49,7 @@ public class Voxel implements JsonSerializable {
     for (int i = 0; i < n; ++i) {
       pow_2_n <<= 1;
     }
-    this.pow_2_n = pow_2_n;
+    p = pow_2_n;
 
     u = (float) 1 / pow_2_n;
     this.a = (int) Math.ceil(x * pow_2_n);
@@ -72,7 +73,7 @@ public class Voxel implements JsonSerializable {
     for (int i = 0; i < n; ++i) {
       pow_2_n <<= 1;
     }
-    this.pow_2_n = pow_2_n;
+    p = pow_2_n;
 
     if (c < -1) {
       c = -1;
@@ -90,7 +91,7 @@ public class Voxel implements JsonSerializable {
 
   public Voxel() {
     n = a = b = c = 0;
-    pow_2_n = 1;
+    p = 1;
     u = 1.0f;
     x = y = z = 0.0f;
   }
@@ -100,9 +101,8 @@ public class Voxel implements JsonSerializable {
     float dy = v.y - y;
     float dz = v.z - z;
 
-    return (dx > 0 ? dx < u : -dx < v.u) &&
-           (dy > 0 ? dy < u : -dy < v.u) &&
-           (dz > 0 ? dz < u : -dz < v.u);
+    return (dx > 0 ? dx < u : -dx < v.u) && (dy > 0 ? dy < u : -dy < v.u) && (dz
+            > 0 ? dz < u : -dz < v.u);
   }
 
   @Override
@@ -126,8 +126,8 @@ public class Voxel implements JsonSerializable {
 
   @Override
   public String toString() {
-    return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z +
-           "]";
+    return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z
+            + "]";
   }
 
   public Voxel moved(Vector3D offset) {

@@ -14,10 +14,11 @@ import xyz.alexac.leveleditor.model.Vector3D;
 import xyz.alexac.leveleditor.model.Voxel;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
-public class RenderVoxel extends Voxel {
+public class RenderVoxel
+        extends Voxel {
   public final BufferedImage left;
   public final BufferedImage right;
   public final BufferedImage top;
@@ -25,11 +26,11 @@ public class RenderVoxel extends Voxel {
   public RenderVoxel(Voxel v, BufferedImage image, Vector2D offset,
                      int gridWidth, int gridHeight) {
     super(v.n, v.a, v.b, v.c);
-    final int ux = gridWidth / 2 / pow_2_n;
-    final int uy = gridHeight / 2 / pow_2_n;
+    final int ux = gridWidth / 2 / p;
+    final int uy = gridHeight / 2 / p;
     Vector2D uvOrigin = new Vector2D((v.a - v.b) * ux,
                                      -(v.a + v.b) * uy - 2 * v.c * uy).
-             minus(offset);
+            subtract(offset).toInteger();
 
     left = new BufferedImage(ux, uy * 3, BufferedImage.TYPE_4BYTE_ABGR);
     Graphics g = left.getGraphics();
@@ -61,8 +62,8 @@ public class RenderVoxel extends Voxel {
     mask.addPoint(2 * ux, uy);
     mask.addPoint(ux, 2 * uy);
     g.setClip(mask);
-    g.drawImage(image, 0, 0, 2 * ux, 2 * uy, uvOrigin.x - ux, uvOrigin.y - 4 *
-                                                                           uy,
+    g.drawImage(image, 0, 0, 2 * ux, 2 * uy, uvOrigin.x - ux, uvOrigin.y - 4
+                * uy,
                 uvOrigin.x + ux, uvOrigin.y - 2 * uy, new Color(0, 0, 0, 0),
                 null);
   }
