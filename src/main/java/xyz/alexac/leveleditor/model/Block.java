@@ -30,14 +30,16 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
-public class Block extends Observable implements JsonSerializable {
+public class Block
+        extends Observable
+        implements JsonSerializable {
   private String name = "block";
   private BufferedImage defaultImage = null;
   private final Map<String, BufferedImage> themedImages = new TreeMap<>();
-  private final List<Voxel> voxels = new ArrayList<>();
+  private List<Voxel> voxels = new ArrayList<>();
   private Vector2D offset = new Vector2D();
 
   public String getName() {
@@ -87,8 +89,7 @@ public class Block extends Observable implements JsonSerializable {
   }
 
   public void setTheme(String theme, BufferedImage image) {
-    if (themedImages.containsKey(theme) &&
-        themedImages.get(theme).equals(image)) {
+    if (themedImages.containsKey(theme) && themedImages.get(theme).equals(image)) {
       return;
     }
 
@@ -118,9 +119,6 @@ public class Block extends Observable implements JsonSerializable {
   }
 
   public void setVoxel(Voxel v) {
-    if (!voxels.contains(v)) {
-      return;
-    }
     for (Voxel v1 : voxels) {
       if (v1.doesIntersects(v)) {
         return;
@@ -142,7 +140,8 @@ public class Block extends Observable implements JsonSerializable {
     return null;
   }
 
-  private String encodeImage(BufferedImage image) throws IOException {
+  private String encodeImage(BufferedImage image)
+          throws IOException {
     ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
     OutputStream base64Stream = Base64.getEncoder().wrap(byteArrayStream);
     OutputStream gzipStream = new GZIPOutputStream(base64Stream);
@@ -151,9 +150,10 @@ public class Block extends Observable implements JsonSerializable {
     return byteArrayStream.toString();
   }
 
-  private static BufferedImage decodeImage(String data) throws IOException {
+  private static BufferedImage decodeImage(String data)
+          throws IOException {
     ByteArrayInputStream byteArrayStream = new ByteArrayInputStream(data.
-                         getBytes());
+            getBytes());
     InputStream base64Stream = Base64.getDecoder().wrap(byteArrayStream);
     InputStream gzipStream = new GZIPInputStream(base64Stream);
     BufferedImage image = ImageIO.read(gzipStream);
@@ -177,10 +177,10 @@ public class Block extends Observable implements JsonSerializable {
     }
 
     JsonObjectBuilder builder = Json.createObjectBuilder()
-                      .add("name", name)
-                      .add("offset", offset.toJSON())
-                      .add("themedImages", themedImages)
-                      .add("voxels", voxels);
+            .add("name", name)
+            .add("offset", offset.toJSON())
+            .add("themedImages", themedImages)
+            .add("voxels", voxels);
     try {
       builder.add("defaultImage", encodeImage(defaultImage));
     } catch (IOException ex) {
@@ -211,5 +211,15 @@ public class Block extends Observable implements JsonSerializable {
       block.setVoxel(Voxel.fromJSON(voxels.getJsonObject(i)));
     }
     return block;
+  }
+
+  public void unsetVoxel(Voxel voxel) {
+    List<Voxel> result = new ArrayList<>();
+    for (Voxel v : voxels) {
+      if (!v.doesIntersects(voxel)) {
+        result.add(v);
+      }
+    }
+    voxels = result;
   }
 }

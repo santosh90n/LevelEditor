@@ -22,7 +22,9 @@ public interface ViewportController {
 
   public void voxelClicked(Voxel v);
 
-  public List<RenderVoxel> getVoxels(int gridWidth, int gridHeight);
+  public List<RenderVoxel> getRenderVoxels(int gridWidth, int gridHeight);
+
+  public List<Voxel> getVoxels();
 
   public Color getCursorColor(Voxel cursor);
 

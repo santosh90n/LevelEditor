@@ -168,23 +168,36 @@ public class Viewport
     }
   }
 
+  private void paintVoxel(Graphics g, Voxel v) {
+    Vector2D origin = findOrigin(v.x, v.y)
+            .subtract(0, v.z * gridHeight * scale)
+            .toInteger();
+    final int dw = (int) (v.u * gridWidth * scale / 2);
+    final int dh = (int) (v.u * gridHeight * scale / 2);
+    g.drawLine(origin.x, origin.y, origin.x - dw, origin.y - dh);
+    g.drawLine(origin.x, origin.y, origin.x + dw, origin.y - dh);
+    g.drawLine(origin.x, origin.y, origin.x, origin.y - 2 * dh);
+    g.drawLine(origin.x - dw, origin.y - dh, origin.x - dw, origin.y - 3 * dh);
+    g.drawLine(origin.x + dw, origin.y - dh, origin.x + dw, origin.y - 3 * dh);
+    g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
+    g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
+    g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
+    g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
+  }
+
+  private void paintVoxels(Graphics g) {
+    if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
+      for (Voxel v : controller.getVoxels()) {
+        g.setColor(Color.ORANGE);
+        paintVoxel(g, v);
+      }
+    }
+  }
+
   private void paintCursor(Graphics g) {
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
       g.setColor(controller.getCursorColor(cursor));
-      Vector2D origin = findOrigin(cursor.x, cursor.y)
-              .subtract(0, cursor.z * gridHeight * scale)
-              .toInteger();
-      final int dw = (int) (cursor.u * gridWidth * scale / 2);
-      final int dh = (int) (cursor.u * gridHeight * scale / 2);
-      g.drawLine(origin.x, origin.y, origin.x - dw, origin.y - dh);
-      g.drawLine(origin.x, origin.y, origin.x + dw, origin.y - dh);
-      g.drawLine(origin.x, origin.y, origin.x, origin.y - 2 * dh);
-      g.drawLine(origin.x - dw, origin.y - dh, origin.x - dw, origin.y - 3 * dh);
-      g.drawLine(origin.x + dw, origin.y - dh, origin.x + dw, origin.y - 3 * dh);
-      g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
-      g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 2 * dh);
-      g.drawLine(origin.x - dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
-      g.drawLine(origin.x + dw, origin.y - 3 * dh, origin.x, origin.y - 4 * dh);
+      paintVoxel(g, cursor);
     }
   }
 
@@ -251,8 +264,8 @@ public class Viewport
 
   private void renderVoxels(Graphics g) {
     if (controller != null) {
-      List<RenderVoxel> voxels = controller.getVoxels(this.gridWidth,
-                                                      this.gridHeight);
+      List<RenderVoxel> voxels = controller.getRenderVoxels(this.gridWidth,
+                                                            this.gridHeight);
       sortVoxelsInRenderOrder(voxels);
 
       for (RenderVoxel v : voxels) {
@@ -284,7 +297,7 @@ public class Viewport
     renderImages(g);
 
     paintMainGrid(g);
-
+    paintVoxels(g);
     paintCursor(g);
 
     paintOrigin(g);
@@ -325,6 +338,10 @@ public class Viewport
   public void keyReleased(KeyEvent e) {
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
       switch (e.getKeyCode()) {
+        case KeyEvent.VK_SPACE:
+          controller.voxelClicked(cursor);
+          repaint();
+          break;
         case KeyEvent.VK_UP:
           if (e.isShiftDown()) {
             if (cursor.c < 16) {
@@ -343,13 +360,32 @@ public class Viewport
           } else {
             cursor = cursor.moved(new Vector3D(0, -1, 0));
           }
+          repaint();
           break;
         case KeyEvent.VK_LEFT:
-          cursor = cursor.moved(new Vector3D(-1, 0, 0));
+          if (e.isShiftDown()) {
+            if (cursor.n > 0) {
+              cursor = new Voxel(cursor.n - 1,
+                                 cursor.a >> 1,
+                                 cursor.b >> 1,
+                                 cursor.c >> 1);
+            }
+          } else {
+            cursor = cursor.moved(new Vector3D(-1, 0, 0));
+          }
           repaint();
           break;
         case KeyEvent.VK_RIGHT:
-          cursor = cursor.moved(new Vector3D(1, 0, 0));
+          if (e.isShiftDown()) {
+            if (cursor.n < 5) {
+              cursor = new Voxel(cursor.n + 1,
+                                 cursor.a << 1,
+                                 cursor.b << 1,
+                                 cursor.c << 1);
+            }
+          } else {
+            cursor = cursor.moved(new Vector3D(1, 0, 0));
+          }
           repaint();
           break;
       }

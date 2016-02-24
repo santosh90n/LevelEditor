@@ -56,8 +56,13 @@ public class BlockViewportController
   }
 
   @Override
-  public List<RenderVoxel> getVoxels(int gridWidth, int gridHeight) {
+  public List<RenderVoxel> getRenderVoxels(int gridWidth, int gridHeight) {
     return new ArrayList<>();
+  }
+
+  @Override
+  public List<Voxel> getVoxels() {
+    return block.getVoxels();
   }
 
   @Override
@@ -73,6 +78,20 @@ public class BlockViewportController
 
   @Override
   public void voxelClicked(Voxel v) {
+    boolean found = false;
+    for (Voxel t : block.getVoxels()) {
+      if (t.doesIntersects(v)) {
+        found = true;
+        break;
+      }
+    }
+    System.out.println(v);
+    System.out.println(found);
+    if (found) {
+      block.unsetVoxel(v);
+    } else {
+      block.setVoxel(v);
+    }
   }
 
   public void setTheme(String theme) {

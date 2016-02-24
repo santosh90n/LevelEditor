@@ -126,12 +126,12 @@ public class Voxel
 
   @Override
   public String toString() {
-    return "xyz.alexac.leveleditor.model.Voxel[x=" + x + ",y=" + y + ",z=" + z
-            + "]";
+    return "xyz.alexac.leveleditor.model.Voxel[n=" + n + "x=" + x + ",y=" + y
+            + ",z=" + z + "]";
   }
 
   public Voxel moved(Vector3D offset) {
-    return new Voxel(n, a + offset.x * n, b + offset.y * n, c + offset.z * n);
+    return new Voxel(n, a + offset.x, b + offset.y, c + offset.z);
   }
 
   @Override
