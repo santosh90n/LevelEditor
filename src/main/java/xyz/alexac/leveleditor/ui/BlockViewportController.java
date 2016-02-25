@@ -13,7 +13,6 @@ import java.util.Observable;
 import java.util.Observer;
 import xyz.alexac.leveleditor.model.Block;
 import xyz.alexac.leveleditor.model.Vector2D;
-import xyz.alexac.leveleditor.model.Vector3D;
 import xyz.alexac.leveleditor.model.Voxel;
 
 /**
@@ -24,7 +23,6 @@ public class BlockViewportController
         implements ViewportController,
                    Observer {
   private final Block block;
-  private final RenderBlockInstance renderBlockInstance;
   private final Runnable redraw;
   private String theme = null;
 
@@ -32,7 +30,6 @@ public class BlockViewportController
     block = b;
     b.addObserver(this);
     this.redraw = redraw;
-    renderBlockInstance = new RenderBlockInstance(block, new Vector3D());
   }
 
   @Override
