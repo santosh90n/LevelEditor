@@ -5,6 +5,7 @@
  */
 package xyz.alexac.leveleditor.model;
 
+import java.util.Iterator;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
@@ -16,6 +17,42 @@ import javax.json.JsonValue;
  */
 public class Octree
         implements JsonSerializable {
+
+  private static class OctreeIterator
+          implements Iterator<Voxel> {
+    private final Octree tree;
+    private int x;
+    private int y;
+    private int z;
+    private final int min;
+    private final int max;
+
+    public OctreeIterator(Octree tree) {
+      this.tree = tree;
+      Box boundingBox = tree.getBoundingBox();
+      min = x = y = z = boundingBox.origin.x;
+      max = boundingBox.origin.x + boundingBox.size.x;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return z < max;
+    }
+
+    @Override
+    public Voxel next() {
+      Voxel v = new Voxel(new Vector3D(x, y, z), tree.get(x, y, z));
+      if (++x == max) {
+        x = min;
+        if (++y == max) {
+          y = min;
+          ++z;
+        }
+      }
+      return v;
+    }
+  }
+
   private interface Node {
     public int get(long i);
 
@@ -257,5 +294,9 @@ public class Octree
     return Json.createObjectBuilder()
             .add("depth", depth)
             .add("root", root.toJSON());
+  }
+
+  public Iterator<Voxel> iterator() {
+    return new OctreeIterator(this);
   }
 }

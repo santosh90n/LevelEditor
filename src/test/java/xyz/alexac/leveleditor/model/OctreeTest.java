@@ -7,12 +7,14 @@ package xyz.alexac.leveleditor.model;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonWriter;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -121,5 +123,21 @@ public class OctreeTest {
     instance.set(7, 7, 7, 0);
     boundingBox = instance.getBoundingBox();
     assertEquals(new Box(-1, -1, -1, 2, 2, 2), boundingBox);
+  }
+
+  @Test
+  public void testIterator() {
+    System.out.println("testIterator");
+    Octree instance = new Octree();
+
+    int i = 0;
+    for (Iterator<Voxel> it = instance.iterator(); it.hasNext(); ++i) {
+      Voxel v = it.next();
+      assertNotEquals(8, i);
+      assertEquals((i & 1) - 1, v.x);
+      assertEquals(((i & 2) >> 1) - 1, v.y);
+      assertEquals(((i & 4) >> 2) - 1, v.z);
+    }
+    assertEquals(8, i);
   }
 }
