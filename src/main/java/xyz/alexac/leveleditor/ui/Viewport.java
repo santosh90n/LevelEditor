@@ -16,14 +16,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JComponent;
 import xyz.alexac.leveleditor.model.Project;
 import xyz.alexac.leveleditor.model.Vector2D;
 import xyz.alexac.leveleditor.model.Vector3D;
-import xyz.alexac.leveleditor.model.Voxel;
 
 /**
 
@@ -46,7 +44,7 @@ public class Viewport
   private int gridHeight = 128;
   private Vector2D lastPoint = null;
   private float scale = 1.0f;
-  private Voxel cursor = new Voxel();
+  private Vector3D cursor = new Vector3D();
 
   private ViewportController controller = null;
 
@@ -168,12 +166,12 @@ public class Viewport
     }
   }
 
-  private void paintVoxel(Graphics g, Voxel v) {
+  private void paintVoxel(Graphics g, Vector3D v) {
     Vector2D origin = findOrigin(v.x, v.y)
             .subtract(0, v.z * gridHeight * scale)
             .toInteger();
-    final int dw = (int) (v.u * gridWidth * scale / 2);
-    final int dh = (int) (v.u * gridHeight * scale / 2);
+    final int dw = (int) (gridWidth * scale / 2);
+    final int dh = (int) (gridHeight * scale / 2);
     g.drawLine(origin.x, origin.y, origin.x - dw, origin.y - dh);
     g.drawLine(origin.x, origin.y, origin.x + dw, origin.y - dh);
     g.drawLine(origin.x, origin.y, origin.x, origin.y - 2 * dh);
@@ -187,7 +185,7 @@ public class Viewport
 
   private void paintVoxels(Graphics g) {
     if (controller != null && controller.getMode() == Viewport.MODE_VOXEL) {
-      for (Voxel v : controller.getVoxels()) {
+      for (Vector3D v : controller.getVoxels()) {
         g.setColor(Color.ORANGE);
         paintVoxel(g, v);
       }
@@ -217,63 +215,6 @@ public class Viewport
     g.drawString("Scale: " + scaleStr, getWidth() - 100, getHeight() - 20);
   }
 
-  private static void sortVoxelsInRenderOrder(List<RenderVoxel> voxels) {
-    voxels.sort((RenderVoxel a, RenderVoxel b) -> {
-      if (a.z + a.u < b.z + b.u) {
-        return -1;
-      }
-      if (a.z + b.u > b.z + b.u) {
-        return 1;
-      }
-      if (a.x + a.y > b.x + b.y) {
-        return -1;
-      }
-      if (a.x + a.y < b.x + b.y) {
-        return 1;
-      }
-      if (a.x - a.y < b.x - b.y) {
-        return -1;
-      }
-      return 1;
-    });
-  }
-
-  private void renderVoxel(Graphics g, RenderVoxel v) {
-    final int gridWidth = (int) (this.gridWidth * scale);
-    final int gridHeight = (int) (this.gridHeight * scale);
-    // 2D coordinate of the top left point of the voxel's bounding rectangle.
-    Vector2D vOrigin =
-            origin.add((int) ((v.x - v.y - v.u) * gridWidth / 2),
-                       (int) (-(v.x + v.y) * gridHeight / 2 - (v.z + v.u * 2)
-                       * gridHeight)).toInteger();
-    g.drawImage(v.top, vOrigin.x, vOrigin.y, (int) (v.u * gridWidth),
-                (int) (v.u * gridHeight), 0,
-                0, v.top.getWidth(), v.top.getHeight(), null);
-    g.drawImage(v.left, vOrigin.x, vOrigin.y + (int) (v.u * gridHeight / 2),
-                (int) (v.u * gridWidth / 2),
-                (int) (v.u * 3 / 2 * gridHeight), 0, 0, v.left.getWidth(),
-                v.left.
-                getHeight(),
-                null);
-    g.drawImage(v.right, vOrigin.x + (int) (v.u * gridWidth / 2),
-                vOrigin.y + (int) (v.u * gridHeight / 2),
-                (int) (v.u * gridWidth / 2),
-                (int) (v.u * 3 / 2 * gridHeight), 0, 0,
-                v.right.getWidth(), v.right.getHeight(), null);
-  }
-
-  private void renderVoxels(Graphics g) {
-    if (controller != null) {
-      List<RenderVoxel> voxels = controller.getRenderVoxels(this.gridWidth,
-                                                            this.gridHeight);
-      sortVoxelsInRenderOrder(voxels);
-
-      for (RenderVoxel v : voxels) {
-        renderVoxel(g, v);
-      }
-    }
-  }
-
   private void renderImages(Graphics g) {
     if (controller != null) {
       for (ViewportController.Image image : controller.getImages()) {
@@ -293,7 +234,6 @@ public class Viewport
     g.setColor(Color.DARK_GRAY);
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    renderVoxels(g);
     renderImages(g);
 
     paintMainGrid(g);
@@ -344,48 +284,30 @@ public class Viewport
           break;
         case KeyEvent.VK_UP:
           if (e.isShiftDown()) {
-            if (cursor.c < 16) {
-              cursor = cursor.moved(new Vector3D(0, 0, 1));
+            if (cursor.z < 16) {
+              cursor = cursor.add(new Vector3D(0, 0, 1));
             }
           } else {
-            cursor = cursor.moved(new Vector3D(0, 1, 0));
+            cursor = cursor.add(new Vector3D(0, 1, 0));
           }
           repaint();
           break;
         case KeyEvent.VK_DOWN:
           if (e.isShiftDown()) {
-            if (cursor.c > -1) {
-              cursor = cursor.moved(new Vector3D(0, 0, -1));
+            if (cursor.z > -1) {
+              cursor = cursor.add(new Vector3D(0, 0, -1));
             }
           } else {
-            cursor = cursor.moved(new Vector3D(0, -1, 0));
+            cursor = cursor.add(new Vector3D(0, -1, 0));
           }
           repaint();
           break;
         case KeyEvent.VK_LEFT:
-          if (e.isShiftDown()) {
-            if (cursor.n > 0) {
-              cursor = new Voxel(cursor.n - 1,
-                                 cursor.a >> 1,
-                                 cursor.b >> 1,
-                                 cursor.c >> 1);
-            }
-          } else {
-            cursor = cursor.moved(new Vector3D(-1, 0, 0));
-          }
+          cursor = cursor.add(new Vector3D(-1, 0, 0));
           repaint();
           break;
         case KeyEvent.VK_RIGHT:
-          if (e.isShiftDown()) {
-            if (cursor.n < 5) {
-              cursor = new Voxel(cursor.n + 1,
-                                 cursor.a << 1,
-                                 cursor.b << 1,
-                                 cursor.c << 1);
-            }
-          } else {
-            cursor = cursor.moved(new Vector3D(1, 0, 0));
-          }
+          cursor = cursor.add(new Vector3D(1, 0, 0));
           repaint();
           break;
       }

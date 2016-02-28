@@ -9,7 +9,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import xyz.alexac.leveleditor.model.Vector2D;
-import xyz.alexac.leveleditor.model.Voxel;
+import xyz.alexac.leveleditor.model.Vector3D;
 
 /**
 
@@ -20,13 +20,11 @@ public interface ViewportController {
 
   public void tileClicked(Vector2D position);
 
-  public void voxelClicked(Voxel v);
+  public void voxelClicked(Vector3D v);
 
-  public List<RenderVoxel> getRenderVoxels(int gridWidth, int gridHeight);
+  public List<Vector3D> getVoxels();
 
-  public List<Voxel> getVoxels();
-
-  public Color getCursorColor(Voxel cursor);
+  public Color getCursorColor(Vector3D cursor);
 
   public class Image {
     public final Vector2D offset;

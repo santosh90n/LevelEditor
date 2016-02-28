@@ -6,8 +6,8 @@
 package xyz.alexac.leveleditor.model;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
 public class BlockInstance {
   public final Vector3D origin;
@@ -19,11 +19,9 @@ public class BlockInstance {
   }
 
   public boolean doesIntersects(BlockInstance instance) {
-    for (Voxel v1 : block.getVoxels()) {
-      for (Voxel v2 : instance.block.getVoxels()) {
-        if (v1.doesIntersects(v2)) {
-          return true;
-        }
+    for (Vector3D v : block.getVoxels()) {
+      if (instance.block.getVoxels().contains(v)) {
+        return true;
       }
     }
     return false;

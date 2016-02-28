@@ -39,7 +39,7 @@ public class Block
   private String name = "block";
   private BufferedImage defaultImage = null;
   private final Map<String, BufferedImage> themedImages = new TreeMap<>();
-  private List<Voxel> voxels = new ArrayList<>();
+  private List<Vector3D> voxels = new ArrayList<>();
   private Vector2D offset = new Vector2D();
 
   public String getName() {
@@ -114,15 +114,13 @@ public class Block
     notifyObservers("offset");
   }
 
-  public List<Voxel> getVoxels() {
+  public List<Vector3D> getVoxels() {
     return new ArrayList<>(voxels);
   }
 
-  public void setVoxel(Voxel v) {
-    for (Voxel v1 : voxels) {
-      if (v1.doesIntersects(v)) {
-        return;
-      }
+  public void setVoxel(Vector3D v) {
+    if (voxels.contains(v)) {
+      return;
     }
     voxels.add(v);
     setChanged();
@@ -133,7 +131,7 @@ public class Block
     return voxels.size();
   }
 
-  public Voxel getVoxel(int i) {
+  public Vector3D getVoxel(int i) {
     if (voxels.size() >= i) {
       return voxels.get(i);
     }
@@ -172,7 +170,7 @@ public class Block
       }
     }
     JsonArrayBuilder voxels = Json.createArrayBuilder();
-    for (Voxel v : this.voxels) {
+    for (Vector3D v : this.voxels) {
       voxels.add(v.toJSON());
     }
 
@@ -208,18 +206,12 @@ public class Block
     }
     JsonArray voxels = object.getJsonArray("voxels");
     for (int i = 0; i < voxels.size(); ++i) {
-      block.setVoxel(Voxel.fromJSON(voxels.getJsonObject(i)));
+      block.setVoxel(Vector3D.fromJSON(voxels.getJsonObject(i)));
     }
     return block;
   }
 
-  public void unsetVoxel(Voxel voxel) {
-    List<Voxel> result = new ArrayList<>();
-    for (Voxel v : voxels) {
-      if (!v.doesIntersects(voxel)) {
-        result.add(v);
-      }
-    }
-    voxels = result;
+  public void unsetVoxel(Vector3D voxel) {
+    voxels.remove(voxel);
   }
 }

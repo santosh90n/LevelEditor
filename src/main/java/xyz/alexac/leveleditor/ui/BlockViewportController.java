@@ -13,7 +13,7 @@ import java.util.Observable;
 import java.util.Observer;
 import xyz.alexac.leveleditor.model.Block;
 import xyz.alexac.leveleditor.model.Vector2D;
-import xyz.alexac.leveleditor.model.Voxel;
+import xyz.alexac.leveleditor.model.Vector3D;
 
 /**
 
@@ -53,12 +53,7 @@ public class BlockViewportController
   }
 
   @Override
-  public List<RenderVoxel> getRenderVoxels(int gridWidth, int gridHeight) {
-    return new ArrayList<>();
-  }
-
-  @Override
-  public List<Voxel> getVoxels() {
+  public List<Vector3D> getVoxels() {
     return block.getVoxels();
   }
 
@@ -74,17 +69,8 @@ public class BlockViewportController
   }
 
   @Override
-  public void voxelClicked(Voxel v) {
-    boolean found = false;
-    for (Voxel t : block.getVoxels()) {
-      if (t.doesIntersects(v)) {
-        found = true;
-        break;
-      }
-    }
-    System.out.println(v);
-    System.out.println(found);
-    if (found) {
+  public void voxelClicked(Vector3D v) {
+    if (block.getVoxels().contains(v)) {
       block.unsetVoxel(v);
     } else {
       block.setVoxel(v);
@@ -99,11 +85,9 @@ public class BlockViewportController
   }
 
   @Override
-  public Color getCursorColor(Voxel cursor) {
-    for (Voxel v : block.getVoxels()) {
-      if (v.doesIntersects(cursor)) {
-        return Color.RED;
-      }
+  public Color getCursorColor(Vector3D cursor) {
+    if (block.getVoxels().contains(cursor)) {
+      return Color.RED;
     }
     return Color.BLUE;
   }

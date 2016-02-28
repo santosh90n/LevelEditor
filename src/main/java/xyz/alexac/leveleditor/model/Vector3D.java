@@ -6,13 +6,15 @@
 package xyz.alexac.leveleditor.model;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 /**
- *
- * @author alex-ac
+
+ @author alex-ac
  */
-public class Vector3D implements JsonSerializable {
+public class Vector3D
+        implements JsonSerializable {
   public final int x;
   public final int y;
   public final int z;
@@ -25,6 +27,10 @@ public class Vector3D implements JsonSerializable {
     this.x = x;
     this.y = y;
     this.z = z;
+  }
+
+  public Vector3D add(Vector3D v) {
+    return new Vector3D(x + v.x, y + v.y, z + v.z);
   }
 
   @Override
@@ -59,5 +65,10 @@ public class Vector3D implements JsonSerializable {
   @Override
   public String toString() {
     return "Vector3D(" + x + ", " + y + ", " + z + ")";
+  }
+
+  static Vector3D fromJSON(JsonObject object) {
+    return new Vector3D(object.getInt("x"), object.getInt("y"), object.getInt(
+                        "z"));
   }
 }
